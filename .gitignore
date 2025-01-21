@@ -399,3 +399,4 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 /code/DocuDoctor/DocuDoctor/obj/Debug
+/code/DocuDoctor/DocuDoctor/obj
