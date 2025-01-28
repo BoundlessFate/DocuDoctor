@@ -1,29 +1,13 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
-using System.Diagnostics.Eventing.Reader;
-using System.Runtime.InteropServices.Marshalling;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Windows.Shell;
-using DocuDoctor.Model;
-using SkiaSharp;
+﻿using SkiaSharp;
 using SkiaSharp.Views.Desktop;
-using SkiaSharp.Views.WPF;
-namespace DocuDoctor.ViewController
-{
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Media.Imaging;
+namespace DocuDoctor.ViewController {
     /// <summary>
     /// Controller for DocuDoctor
     /// </summary>
-    public partial class MainWindow : Window
-    {
+    public partial class MainWindow : Window {
         private Data m_data;
         private bool m_clicked;
         private SKPoint m_lastMousePos;
@@ -75,6 +59,8 @@ namespace DocuDoctor.ViewController
             skCanvas.MouseWheel += SkCanvas_MouseWheel;
             KeyDown += Screen_KeyDown;
             KeyUp += Screen_KeyUp;
+            fileButton.Click += FileButton_OnClick;
+
         }
 
         private void Screen_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -94,7 +80,13 @@ namespace DocuDoctor.ViewController
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            if (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl) m_ctrlClicked = true;
+            if(e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl)
+                m_ctrlClicked = true;
+        }
+
+        private void FileButton_OnClick(object sender, RoutedEventArgs e) {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.ShowDialog();
         }
 
         private void Screen_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
@@ -114,7 +106,8 @@ namespace DocuDoctor.ViewController
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            if (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl) m_ctrlClicked = false;
+            if(e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl)
+                m_ctrlClicked = false;
         }
 
         private void SkCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -135,23 +128,23 @@ namespace DocuDoctor.ViewController
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             float scaleFactor = 1.25f;
-            if (!m_ctrlClicked) return;
+            if(!m_ctrlClicked)
+                return;
             System.Windows.Point curPos = e.GetPosition(skCanvas);
             float oldScale = m_data.Scale;
             // Zoom in
-            if (e.Delta > 0)
-            {
+            if(e.Delta > 0) {
                 m_data.Scale *= scaleFactor;
             }
             // Zoom out
-            else 
-            {
+            else {
                 m_data.Scale /= scaleFactor;
             }
             m_data.TranslationX = (float)(curPos.X - (curPos.X - m_data.TranslationX) * (m_data.Scale / oldScale));
             m_data.TranslationY = (float)(curPos.Y - (curPos.Y - m_data.TranslationY) * (m_data.Scale / oldScale));
-            m_initialMousePos = new SKPoint((float)(curPos.X),(float)curPos.Y);
-            m_initialTransformX = m_data.TranslationX; m_initialTransformY = m_data.TranslationY;
+            m_initialMousePos = new SKPoint((float)(curPos.X), (float)curPos.Y);
+            m_initialTransformX = m_data.TranslationX;
+            m_initialTransformY = m_data.TranslationY;
             skCanvas.InvalidateVisual();
         }
 
@@ -193,18 +186,21 @@ namespace DocuDoctor.ViewController
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            if (!m_clicked) return;
-            else if (m_clicked && e.MouseDevice.LeftButton == MouseButtonState.Released) { m_clicked = false; return; }
+            if(!m_clicked)
+                return;
+            else if(m_clicked && e.MouseDevice.LeftButton == MouseButtonState.Released) { m_clicked = false; return; }
             System.Windows.Point mPos = e.GetPosition(skCanvas);
-            mPos.X -= m_data.TranslationX; mPos.X /= m_data.Scale;
-            mPos.Y -= m_data.TranslationY; mPos.Y /= m_data.Scale;
+            mPos.X -= m_data.TranslationX;
+            mPos.X /= m_data.Scale;
+            mPos.Y -= m_data.TranslationY;
+            mPos.Y /= m_data.Scale;
             SKPoint curMousePos = new SKPoint((float)mPos.X, (float)mPos.Y);
             float deltaX = curMousePos.X - m_lastMousePos.X;
             float deltaY = curMousePos.Y - m_lastMousePos.Y;
-            if (!m_data.MoveBox(m_lastMousePos.X, m_lastMousePos.Y, deltaX, deltaY) && m_ctrlClicked) {
+            if(!m_data.MoveBox(m_lastMousePos.X, m_lastMousePos.Y, deltaX, deltaY) && m_ctrlClicked) {
                 System.Windows.Point curPos = e.GetPosition(skCanvas);
-                m_data.TranslationX = m_initialTransformX + ((float)curPos.X-m_initialMousePos.X) / m_data.Scale;
-                m_data.TranslationY = m_initialTransformY + ((float)curPos.Y-m_initialMousePos.Y) /m_data.Scale;
+                m_data.TranslationX = m_initialTransformX + ((float)curPos.X - m_initialMousePos.X) / m_data.Scale;
+                m_data.TranslationY = m_initialTransformY + ((float)curPos.Y - m_initialMousePos.Y) / m_data.Scale;
             }
             skCanvas.InvalidateVisual();
             m_lastMousePos = curMousePos;
@@ -227,16 +223,20 @@ namespace DocuDoctor.ViewController
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            System.Windows.Point mPos = e.GetPosition(skCanvas); 
-            mPos.X -= m_data.TranslationX; mPos.X /= m_data.Scale;
-            mPos.Y -= m_data.TranslationY; mPos.Y /= m_data.Scale;
+            System.Windows.Point mPos = e.GetPosition(skCanvas);
+            mPos.X -= m_data.TranslationX;
+            mPos.X /= m_data.Scale;
+            mPos.Y -= m_data.TranslationY;
+            mPos.Y /= m_data.Scale;
             SKPoint internalPos = new((float)mPos.X, (float)mPos.Y);
-            if (e.RightButton == MouseButtonState.Pressed) { m_data.AddBox(internalPos); skCanvas.InvalidateVisual(); return; }
-            if (e.MiddleButton == MouseButtonState.Pressed) { m_data.RemoveBox(internalPos); skCanvas.InvalidateVisual(); return; }
-            if (e.LeftButton == MouseButtonState.Released) return;
+            if(e.RightButton == MouseButtonState.Pressed) { m_data.AddBox(internalPos); skCanvas.InvalidateVisual(); return; }
+            if(e.MiddleButton == MouseButtonState.Pressed) { m_data.RemoveBox(internalPos); skCanvas.InvalidateVisual(); return; }
+            if(e.LeftButton == MouseButtonState.Released)
+                return;
             m_lastMousePos = internalPos;
             m_initialMousePos = internalPos;
-            m_initialTransformX = m_data.TranslationX; m_initialTransformY = m_data.TranslationY;
+            m_initialTransformX = m_data.TranslationX;
+            m_initialTransformY = m_data.TranslationY;
             m_clicked = true;
         }
 
@@ -301,7 +301,7 @@ namespace DocuDoctor.ViewController
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            if (this.WindowState == WindowState.Maximized) {
+            if(this.WindowState == WindowState.Maximized) {
                 this.WindowState = WindowState.Normal;
                 windowedButton.Source = new BitmapImage(new Uri("pack://application:,,,/assets/maximize.png"));
                 return;
@@ -349,12 +349,12 @@ namespace DocuDoctor.ViewController
         :: DD11: Mutiscreen support                                         ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            if (e.GetPosition(this).Y < 40) {
-                if (this.WindowState == WindowState.Maximized) {
+            if(e.GetPosition(this).Y < 40) {
+                if(this.WindowState == WindowState.Maximized) {
                     // Multi monitor support with drag to windowed mode
                     nint windowHandle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
                     Screen currentScreen = Screen.FromHandle(windowHandle);
-                    double amountCovered = e.GetPosition(this).X/this.Width;
+                    double amountCovered = e.GetPosition(this).X / this.Width;
                     // Since it is full screen at this point, position relative to window is relative to screen
                     double screenX = e.GetPosition(this).X;
                     this.WindowState = WindowState.Normal;

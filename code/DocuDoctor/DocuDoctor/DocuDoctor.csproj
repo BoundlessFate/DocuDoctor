@@ -16,6 +16,7 @@
     <None Remove="assets\maximize.png" />
     <None Remove="assets\minimize.png" />
     <None Remove="assets\windowed.png" />
+    <None Remove="ViewController\Docudoctor.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,6 +40,7 @@
     <Resource Include="assets\maximize.png" />
     <Resource Include="assets\minimize.png" />
     <Resource Include="assets\windowed.png" />
+    <Resource Include="ViewController\Docudoctor.png" />
   </ItemGroup>
 
   <ItemGroup>
