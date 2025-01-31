@@ -56,7 +56,7 @@ namespace DocuDoctor.ViewController
             m_boxes = new List<UmlBox>();
             m_movedBox = null;
             m_selectedForProperties = null;
-            m_scale = 1; m_translationX = 0; m_translationY = 0;
+            m_scale = (float)Screen.PrimaryScreen.Bounds.Width/1920; m_translationX = 0; m_translationY = 0;
             m_propertyTable = new DataTable();
             m_methodTable = new DataTable();
             m_parameterTable = new DataTable();
@@ -141,7 +141,7 @@ namespace DocuDoctor.ViewController
                 }
             }
             if (selectedBox == null) return false;
-            selectedBox.X += deltaX; selectedBox.Y += deltaY;
+            selectedBox.X += (float)1.5*deltaX; selectedBox.Y += (float)1.5* deltaY;
             m_movedBox = selectedBox;
             return true;
         }
