@@ -81,11 +81,14 @@
                     <ColumnDefinition Width="40" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <!-- File Browser -->
+                <!-- Method Parameters -->
                 <Grid
-                    Background="#ff0000"
+                    Background="#313638"
                     Grid.Column="0"
                     >
+                    <DataGrid Name="ParameterGrid" AutoGenerateColumns="True" VerticalAlignment="Top" MinHeight="750" MaxHeight="750"
+                                        VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,30,0,0">
+                    </DataGrid>
                 </Grid>
                 <!-- Tool Bar -->
                 <Grid
@@ -101,6 +104,7 @@
                     <Grid Grid.Row="0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="1" />
                             <ColumnDefinition Width="250" />
                         </Grid.ColumnDefinitions>
                         <!-- Main Area -->
@@ -110,11 +114,53 @@
                             >
                             <skia:SKElement x:Name="skCanvas" PaintSurface="OnPaintSurface" />
                         </Grid>
-                        <!-- Properties Page -->
+                        <!-- Spacer Page -->
                         <Grid
                             Grid.Column="1"
-                            Background="#0000ff" 
+                            Background="#303030" 
                             >
+                        </Grid>
+                        <!-- Properties Page -->
+                        <Grid
+                            Grid.Column="2"
+                            Background="#313638" 
+                            >
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="15" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <!-- Property Text Element At Top -->
+                            <Grid Grid.Row="0">
+                                <TextBlock Foreground="#f8f8ff" FontSize="10" Margin="10,0,0,0" VerticalAlignment="Center">Properties</TextBlock>
+                            </Grid>
+                            <!-- Maleable Section Of Properties Page -->
+                            <Grid Grid.Row="1">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="25" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Row="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="50" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Label Foreground="#f8f8ff" Content="Name:" Grid.Column="0" VerticalAlignment="Center" />
+                                    <TextBox Name="boxName" Grid.Row="0" Grid.Column="1" Width="200" />
+                                </Grid>
+                                <Grid Grid.Row="1">
+                                    <Label Foreground="#f8f8ff" Content="Properties:" VerticalAlignment="Top" />
+                                    <DataGrid Name="PropertyGrid" AutoGenerateColumns="True" Height="200" VerticalAlignment="Top" 
+                                        VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,30,0,0">
+                                    </DataGrid>
+                                </Grid>
+                                <Grid Grid.Row="2">
+                                    <Label Foreground="#f8f8ff" Content="Methods:" VerticalAlignment="Top" />
+                                    <DataGrid Name="MethodGrid" AutoGenerateColumns="True" Height="200" VerticalAlignment="Top" 
+                                        VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,30,0,0">
+                                    </DataGrid>
+                                </Grid>
+                            </Grid>
                         </Grid>
                     </Grid>
                     <!-- Status Bar -->

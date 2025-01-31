@@ -1,12 +1,15 @@
 ﻿using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using System.Windows;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -51,6 +54,12 @@ namespace DocuDoctor.ViewController
             InitializeComponent();
             OnStartup();
             AddEvents();
+            BindElements();
+        }
+
+        private void BindElements() {
+            PropertyGrid.ItemsSource = m_data.PropertyTable.DefaultView;
+            MethodGrid.ItemsSource = m_data.MethodTable.DefaultView;
         }
 
         private void AddEvents()
@@ -231,13 +240,54 @@ namespace DocuDoctor.ViewController
             mPos.X -= m_data.TranslationX; mPos.X /= m_data.Scale;
             mPos.Y -= m_data.TranslationY; mPos.Y /= m_data.Scale;
             SKPoint internalPos = new((float)mPos.X, (float)mPos.Y);
-            if (e.RightButton == MouseButtonState.Pressed) { m_data.AddBox(internalPos); skCanvas.InvalidateVisual(); return; }
-            if (e.MiddleButton == MouseButtonState.Pressed) { m_data.RemoveBox(internalPos); skCanvas.InvalidateVisual(); return; }
+            if (e.RightButton == MouseButtonState.Pressed) {
+                m_data.AddBox(internalPos); 
+                skCanvas.InvalidateVisual();
+                UpdateProperties();
+                return; 
+            }
+            if (e.MiddleButton == MouseButtonState.Pressed) {
+                m_data.RemoveBox(internalPos); 
+                skCanvas.InvalidateVisual();
+                UpdateProperties();
+                return; 
+            }
             if (e.LeftButton == MouseButtonState.Released) return;
             m_lastMousePos = internalPos;
             m_initialMousePos = internalPos;
             m_initialTransformX = m_data.TranslationX; m_initialTransformY = m_data.TranslationY;
             m_clicked = true;
+        }
+        private void UpdateProperties()
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: UpdateProperties : MainWindow                         ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Created: 1/23/2025                                            ::
+        :: 4. Purpose: Update properties panel with currently selected box  ::
+        :: ---------------------------------------------------------------- ::
+        :: 5. Input Parameters: None                                        ::
+        :: 6. Output Parameters: None                                       ::
+        :: 7. Preconditions: None                                           ::
+        :: 8. Throws: None                                                  ::
+        :: ---------------------------------------------------------------- ::
+        :: 9. Modifications: None                                           ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
+            UmlBox cur = m_data.SelectedForProperties;
+            boxName.Text = "";
+            m_data.PropertyTable.Rows.Clear();
+            m_data.MethodTable.Rows.Clear();
+            m_data.ParameterTable.Rows.Clear();
+            if (cur == null) return;
+            boxName.Text = cur.Name;
+            for (int i = 0; i < cur.Variables.Count; i++) {
+                m_data.PropertyTable.Rows.Add(cur.Variables[i].Protection, cur.Variables[i].Type, cur.Variables[i].Name);
+            }
+            for (int i = 0; i < cur.Methods.Count; i++)
+            {
+                m_data.MethodTable.Rows.Add(cur.Methods[i].Protection, cur.Methods[i].Name, cur.Variables[i].Name);
+            }
         }
 
         private void OnStartup()
@@ -262,6 +312,233 @@ namespace DocuDoctor.ViewController
             WindowStyle = WindowStyle.ThreeDBorderWindow;
             ResizeMode = ResizeMode.CanResize;
             m_ctrlClicked = false;
+            ResetProperties();
+        }
+
+        private void ResetProperties() {
+            boxName.Text = "";
+            m_data.PropertyTable.Columns.Clear();
+            m_data.PropertyTable.Rows.Clear();
+            string[] ids = { "Protection","Type","Name" };
+            for (int i = 0; i < 3; i++) m_data.PropertyTable.Columns.Add(ids[i], typeof(string));
+            m_data.PropertyTable.RowChanged += PropertyTable_SyncChanges;
+            m_data.PropertyTable.RowDeleted += PropertyTable_SyncChanges;
+            m_data.PropertyTable.TableNewRow += PropertyTable_SyncChanges;
+
+            m_data.MethodTable.Columns.Clear();
+            m_data.MethodTable.Rows.Clear();
+            ids = ["Protection", "Return Type", "Name"];
+            for (int i = 0; i < 3; i++) m_data.MethodTable.Columns.Add(ids[i], typeof(string));
+            m_data.MethodTable.RowChanged += MethodTable_SyncChanges;
+            m_data.MethodTable.RowDeleted += MethodTable_SyncChanges;
+            m_data.MethodTable.TableNewRow += MethodTable_SyncChanges;
+            MethodGrid.SelectedCellsChanged += MethodTable_ChangeSelected;
+
+            m_data.ParameterTable.Columns.Clear();
+            m_data.ParameterTable.Columns.Clear();
+            ids = ["Type", "Name"];
+            for (int i = 0; i < 2; i++) m_data.ParameterTable.Columns.Add(ids[i], typeof(string));
+            m_data.ParameterTable.RowChanged += ParameterTable_SyncChanges;
+            m_data.ParameterTable.RowDeleted += ParameterTable_SyncChanges;
+            m_data.ParameterTable.TableNewRow += ParameterTable_SyncChanges;
+        }
+
+        private void PropertyTable_SyncChanges(object sender, DataTableNewRowEventArgs e)
+        {
+            PropertyTable_SyncChanges(sender, new DataRowChangeEventArgs(null, new DataRowAction()));
+        }
+
+        private void PropertyTable_SyncChanges(object sender, DataRowChangeEventArgs e) {
+            if (m_data.SelectedForProperties == null) {
+                // Add a new box if nothing is selected when you start writing
+                UmlBox b = m_data.AddBox(new SKPoint(0, 0));
+                m_data.SelectedForProperties = b;
+            }
+            List<UmlVariable> l = m_data.SelectedForProperties.Variables;
+            DataTable t = m_data.PropertyTable;
+            if (t.Columns.Count != 3) return;
+            l.Clear();
+            for (int i = 0; i < t.Rows.Count; i++) {
+                string[] values = new string[3];
+                try {
+                    for (int j = 0; j < 3; j++) values[j] = (string)t.Rows[i][j];
+                    l.Add(new UmlVariable(values[0], values[1], values[2]));
+                }
+                catch {
+                    // Break out and dont add the item if the row isnt completely filled out
+                    // Just go to the next row like nothing happened
+                    // Console.WriteLine("Row # " + i.ToString() + " not filled out");
+                }
+            }
+            for (int i=0; i<PropertyGrid.Items.Count; i++) {
+                DataGridRow row = (DataGridRow)PropertyGrid.ItemContainerGenerator.ContainerFromItem(PropertyGrid.Items[i]);
+                if (row != null) {
+                    bool hasEmptyCell = false;
+                    // Check each column in the row for empty cells
+                    for (int j=0; j < PropertyGrid.Columns.Count; j++) {
+                        DataGridColumn column = PropertyGrid.Columns[j];
+                        TextBlock? cellContent = column.GetCellContent(PropertyGrid.Items[i]) as TextBlock;
+                        if (cellContent == null || string.IsNullOrWhiteSpace(cellContent.Text)) {
+                            hasEmptyCell = true;
+                            break;
+                        }
+                    }
+                    // Update row background color
+                    if (hasEmptyCell && i != PropertyGrid.Items.Count-1) {
+                        row.Background = new SolidColorBrush(Colors.OrangeRed);
+                    } else {
+                        row.Background = new SolidColorBrush(Colors.White);
+                    }
+                }
+            }
+            m_data.CalculateWidthHeight(m_data.SelectedForProperties);
+            skCanvas.InvalidateVisual();
+        }
+
+        private void MethodTable_ChangeSelected(object sender, SelectedCellsChangedEventArgs e)
+        {
+            // Get the current method's inputs
+            //MethodGrid.SelectedItem.Row
+            // methodGrid.SelectedItem.Row.ItemArray
+            if (MethodGrid.SelectedItem is DataRowView) {
+                DataRow row = ((DataRowView)MethodGrid.SelectedItem).Row;
+                if (row[0] is DBNull || row[1] is DBNull || row[2] is DBNull) return;
+                UmlMethod selectedMethod = m_data.SelectedForProperties.Methods[MethodGrid.SelectedIndex];
+                List<UmlVariable> l = m_data.SelectedForProperties.Variables;
+                DataTable t = m_data.ParameterTable;
+
+                t.Rows.Clear();
+                for (int i = 0; i < l.Count; i++)
+                {
+                    t.Rows.Add(l[i].Type, l[i].Name);
+                }
+            }
+        }
+
+        private void MethodTable_SyncChanges(object sender, DataTableNewRowEventArgs e)
+        {
+            MethodTable_SyncChanges(sender, new DataRowChangeEventArgs(null, new DataRowAction()));
+        }
+
+        private void MethodTable_SyncChanges(object sender, DataRowChangeEventArgs e)
+        {
+            if (m_data.SelectedForProperties == null)
+            {
+                // Add a new box if nothing is selected when you start writing
+                UmlBox b = m_data.AddBox(new SKPoint(0, 0));
+                m_data.SelectedForProperties = b;
+            }
+            List<UmlVariable> l = m_data.SelectedForProperties.Variables;
+            DataTable t = m_data.MethodTable;
+            if (t.Columns.Count != 3) return;
+            l.Clear();
+            for (int i = 0; i < t.Rows.Count; i++)
+            {
+                string[] values = new string[3];
+                try
+                {
+                    for (int j = 0; j < 3; j++) values[j] = (string)t.Rows[i][j];
+                    l.Add(new UmlVariable(values[0], values[1], values[2]));
+                }
+                catch
+                {
+                    // Break out and dont add the item if the row isnt completely filled out
+                    // Just go to the next row like nothing happened
+                    // Console.WriteLine("Row # " + i.ToString() + " not filled out");
+                }
+            }
+            for (int i = 0; i < MethodGrid.Items.Count; i++)
+            {
+                DataGridRow row = (DataGridRow)MethodGrid.ItemContainerGenerator.ContainerFromItem(MethodGrid.Items[i]);
+                if (row != null)
+                {
+                    bool hasEmptyCell = false;
+                    // Check each column in the row for empty cells
+                    for (int j = 0; j < MethodGrid.Columns.Count; j++)
+                    {
+                        DataGridColumn column = MethodGrid.Columns[j];
+                        TextBlock? cellContent = column.GetCellContent(MethodGrid.Items[i]) as TextBlock;
+                        if (cellContent == null || string.IsNullOrWhiteSpace(cellContent.Text))
+                        {
+                            hasEmptyCell = true;
+                            break;
+                        }
+                    }
+                    // Update row background color
+                    if (hasEmptyCell && i != MethodGrid.Items.Count - 1)
+                    {
+                        row.Background = new SolidColorBrush(Colors.OrangeRed);
+                    }
+                    else
+                    {
+                        row.Background = new SolidColorBrush(Colors.White);
+                    }
+                }
+            }
+            m_data.CalculateWidthHeight(m_data.SelectedForProperties);
+            skCanvas.InvalidateVisual();
+        }
+
+        private void ParameterTable_SyncChanges(object sender, DataTableNewRowEventArgs e)
+        {
+            ParameterTable_SyncChanges(sender, new DataRowChangeEventArgs(null, new DataRowAction()));
+        }
+
+        private void ParameterTable_SyncChanges(object sender, DataRowChangeEventArgs e)
+        {
+            if (m_data.SelectedForProperties == null || MethodGrid.SelectedIndex == -1) {
+                m_data.ParameterTable.Clear();
+                return;
+            }
+            List<UmlVariable> l = m_data.SelectedForProperties.Methods[MethodGrid.SelectedIndex].Parameters;
+            DataTable t = m_data.ParameterTable;
+            if (t.Columns.Count != 2) return;
+            l.Clear();
+            for (int i = 0; i < t.Rows.Count; i++)
+            {
+                string[] values = new string[3];
+                try
+                {
+                    for (int j = 0; j < 2; j++) values[j] = (string)t.Rows[i][j];
+                    l.Add(new UmlVariable("", values[0], values[1]));
+                }
+                catch
+                {
+                    // Break out and dont add the item if the row isnt completely filled out
+                    // Just go to the next row like nothing happened
+                    // Console.WriteLine("Row # " + i.ToString() + " not filled out");
+                }
+            }
+            for (int i = 0; i < ParameterGrid.Items.Count; i++)
+            {
+                DataGridRow row = (DataGridRow)ParameterGrid.ItemContainerGenerator.ContainerFromItem(ParameterGrid.Items[i]);
+                if (row != null)
+                {
+                    bool hasEmptyCell = false;
+                    // Check each column in the row for empty cells
+                    for (int j = 0; j < ParameterGrid.Columns.Count; j++)
+                    {
+                        DataGridColumn column = ParameterGrid.Columns[j];
+                        TextBlock? cellContent = column.GetCellContent(ParameterGrid.Items[i]) as TextBlock;
+                        if (cellContent == null || string.IsNullOrWhiteSpace(cellContent.Text))
+                        {
+                            hasEmptyCell = true;
+                            break;
+                        }
+                    }
+                    // Update row background color
+                    if (hasEmptyCell && i != ParameterGrid.Items.Count - 1)
+                    {
+                        row.Background = new SolidColorBrush(Colors.OrangeRed);
+                    }
+                    else
+                    {
+                        row.Background = new SolidColorBrush(Colors.White);
+                    }
+                }
+            }
+            m_data.CalculateWidthHeight(m_data.SelectedForProperties);
+            skCanvas.InvalidateVisual();
         }
 
         private void buttonMinimize_Click(object sender, RoutedEventArgs e)

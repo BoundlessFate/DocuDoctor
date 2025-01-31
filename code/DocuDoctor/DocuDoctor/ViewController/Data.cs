@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,6 +27,16 @@ namespace DocuDoctor.ViewController
         private float m_translationY;
         public float TranslationY { get { return m_translationY; } set { m_translationY = value; } }
 
+        private UmlBox m_selectedForProperties;
+        public UmlBox SelectedForProperties { get { return m_selectedForProperties; } set { m_selectedForProperties = value; } }
+
+        private DataTable m_propertyTable;
+        public DataTable PropertyTable { get { return m_propertyTable; } set { m_propertyTable = value; } }
+        private DataTable m_methodTable;
+        public DataTable MethodTable { get { return m_methodTable; } set { m_methodTable = value; } }
+        private DataTable m_parameterTable;
+        public DataTable ParameterTable { get { return m_parameterTable; } set { m_parameterTable = value; } }
+
         public Data()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: Data : Data                                           ::
@@ -44,10 +55,14 @@ namespace DocuDoctor.ViewController
         {
             m_boxes = new List<UmlBox>();
             m_movedBox = null;
+            m_selectedForProperties = null;
             m_scale = 1; m_translationX = 0; m_translationY = 0;
+            m_propertyTable = new DataTable();
+            m_methodTable = new DataTable();
+            m_parameterTable = new DataTable();
         }
 
-        public void AddBox(SKPoint pos)
+        public UmlBox AddBox(SKPoint pos)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: AddBox : Data                                         ::
         :: ---------------------------------------------------------------- ::
@@ -56,18 +71,20 @@ namespace DocuDoctor.ViewController
         :: 4. Purpose: Adds a new box at the point specified                ::
         :: ---------------------------------------------------------------- ::
         :: 5. Input Parameters: pos - position defining the box             ::
-        :: 6. Output Parameters: None                                       ::
+        :: 6. Output Parameters: box - box that was just created            ::
         :: 7. Preconditions: None                                           ::
         :: 8. Throws: None                                                  ::
         :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 9. Modifications: 1/28/25 - Added output parameter for box       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             UmlBox box = new UmlBox("Class", "TestClass", (int)pos.X, (int)pos.Y);
+            m_selectedForProperties = box;
             m_boxes.Add(box);
             box.AddMethod("public", "int", "TestMethod", [["int", "testOne"], ["double", "testTwo"]]);
             box.AddVariable("public", "float", "TestVariable");
             CalculateWidthHeight(box);
+            return box;
         }
 
         public void RedrawAllBoxes(SKCanvas canvas)
@@ -154,12 +171,13 @@ namespace DocuDoctor.ViewController
                 {
                     // Delete the topmost box at that position, aka, what is being acted on
                     m_boxes.RemoveAt(i);
+                    m_selectedForProperties = null;
                     return;
                 }
             }
         }
 
-        private void CalculateWidthHeight(UmlBox box)
+        public void CalculateWidthHeight(UmlBox box)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: CalculateWidthHeight : Data                           ::
         :: ---------------------------------------------------------------- ::
