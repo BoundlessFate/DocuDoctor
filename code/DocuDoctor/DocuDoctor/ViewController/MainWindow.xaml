@@ -1,6 +1,7 @@
 ﻿<!-- View For DocuDoctor -->
 
 <!-- Boring definitions for window -->
+
 <Window x:Class="DocuDoctor.ViewController.MainWindow "
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -39,6 +40,64 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- DocuDocter Image -->
+        <DrawingImage x:Key="DocudoctorDrawingImage">
+            <DrawingImage.Drawing>
+                <DrawingGroup ClipGeometry="M0,0 V67.733322 H67.733368 V0 H0 Z">
+                    <DrawingGroup Opacity="1" Transform="1,0,0,1,-67.255804,-45.028572">
+                        <DrawingGroup Opacity="1" Transform="0.46778259,0,0,0.46778222,52.005319,40.1813">
+                            <GeometryDrawing>
+                                <GeometryDrawing.Brush>
+                                    <RadialGradientBrush Center="105,82.760582" RadiusX="69.091057" RadiusY="69.091057" GradientOrigin="105,82.760582" MappingMode="Absolute" SpreadMethod="Pad" Opacity="1">
+                                        <GradientStop Color="#FF454545" Offset="0.28233659" />
+                                        <GradientStop Color="#F3313638" Offset="0.94297636" />
+                                    </RadialGradientBrush>
+                                </GeometryDrawing.Brush>
+                                <GeometryDrawing.Pen>
+                                    <Pen Thickness="7.9375" StartLineCap="Flat" EndLineCap="Flat" LineJoin="Miter">
+                                        <Pen.Brush>
+                                            <RadialGradientBrush Center="105,82.760582" RadiusX="72.398346" RadiusY="72.398346" GradientOrigin="105,82.760582" MappingMode="Absolute" SpreadMethod="Reflect" Opacity="1">
+                                                <GradientStop Color="#FFC629AF" Offset="0.93602222" />
+                                                <GradientStop Color="#7BC629AF" Offset="1" />
+                                            </RadialGradientBrush>
+                                        </Pen.Brush>
+                                    </Pen>
+                                </GeometryDrawing.Pen>
+                                <GeometryDrawing.Geometry>
+                                    <EllipseGeometry RadiusX="68.4296" RadiusY="68.4296" Center="105,82.7606" />
+                                </GeometryDrawing.Geometry>
+                            </GeometryDrawing>
+                            <GeometryDrawing Brush="#FFC629AF" Geometry="F1 M67.733368,67.733322z M0,0z M142.48639,139.95993A37.807064,44.297836,0,0,0,142.8533,133.9541A37.807064,44.297836,0,0,0,105.0463,89.656543A37.807064,44.297836,0,0,0,67.239307,133.9541A37.807064,44.297836,0,0,0,67.609827,140.03228A68.429596,68.429596,0,0,0,104.99979,151.19026A68.429596,68.429596,0,0,0,142.48639,139.95993z" />
+                            <GeometryDrawing Brush="#FFC629AF">
+                                <GeometryDrawing.Geometry>
+                                    <EllipseGeometry RadiusX="22.4896" RadiusY="22.4896" Center="105,61.3833" />
+                                </GeometryDrawing.Geometry>
+                            </GeometryDrawing>
+                            <GeometryDrawing>
+                                <GeometryDrawing.Pen>
+                                    <Pen Brush="#FF000000" Thickness="2.64583" StartLineCap="Flat" EndLineCap="Flat" LineJoin="Miter" />
+                                </GeometryDrawing.Pen>
+                                <GeometryDrawing.Geometry>
+                                    <EllipseGeometry RadiusX="24.3417" RadiusY="24.3417" Center="105,121.7092" />
+                                </GeometryDrawing.Geometry>
+                            </GeometryDrawing>
+                            <GeometryDrawing Geometry="F1 M67.733368,67.733322z M0,0z M105,106.75935L105,135.59895">
+                                <GeometryDrawing.Pen>
+                                    <Pen Brush="#FF000000" Thickness="6.78734" StartLineCap="Flat" EndLineCap="Flat" LineJoin="Miter" />
+                                </GeometryDrawing.Pen>
+                            </GeometryDrawing>
+                            <GeometryDrawing Geometry="F1 M67.733368,67.733322z M0,0z M90.58021,121.17915L119.41979,121.17915">
+                                <GeometryDrawing.Pen>
+                                    <Pen Brush="#FF000000" Thickness="6.78734" StartLineCap="Flat" EndLineCap="Flat" LineJoin="Miter" />
+                                </GeometryDrawing.Pen>
+                            </GeometryDrawing>
+                        </DrawingGroup>
+                    </DrawingGroup>
+                </DrawingGroup>
+            </DrawingImage.Drawing>
+        </DrawingImage>
+
     </Window.Resources>
     <!-- Border around the entire screen... without this when maximized windows cuts off 8px from all sides -->
     <Border BorderBrush="Green">
@@ -60,7 +119,7 @@
             <!-- Top bar buttons -->
             <Grid Grid.Row="0">
                 <WrapPanel HorizontalAlignment="Left" VerticalAlignment="Center">
-                    <Image Source="/ViewController/Docudoctor.png" Margin="20,0,0,0" VerticalAlignment="Center" Width="20" Height="20" />
+                    <Image Source="{StaticResource DocudoctorDrawingImage}" Margin="20,0,0,0" VerticalAlignment="Center" Width="20" Height="20" />
                     <TextBlock Foreground="#f8f8ff" FontSize="18" Margin="20,0,0,0" VerticalAlignment="Center">DocuDoctor</TextBlock>
                     <Button x:Name="fileButton" Style="{StaticResource TitleBarButtonStyle}" Content="Select Files" HorizontalAlignment="Left" Height="22" Margin="20,0,0,0" VerticalAlignment="Center" Width="78" RenderTransformOrigin="2.464,-0.964" Foreground="GhostWhite" Background="#00413434"/>
                 </WrapPanel>
