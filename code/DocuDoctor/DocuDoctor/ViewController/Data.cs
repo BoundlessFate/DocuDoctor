@@ -190,7 +190,8 @@ namespace DocuDoctor.ViewController
         :: 7. Preconditions: None                                           ::
         :: 8. Throws: None                                                  ::
         :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 9. Modifications:                                                ::
+        :: Added a line between variables and methods                       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             SKPaint textPaint = new SKPaint
@@ -219,6 +220,7 @@ namespace DocuDoctor.ViewController
                 if (textWidth > maxWidth) maxWidth = textWidth;
                 totalHeight += lineHeight;
             }
+            if (box.Variables.Count > 0 && box.Methods.Count > 0) totalHeight += lineHeight / 2;
             box.Width = maxWidth + 20; box.Height = totalHeight + 20;
         }
 
@@ -236,7 +238,8 @@ namespace DocuDoctor.ViewController
         :: 7. Preconditions: None                                           ::
         :: 8. Throws: None                                                  ::
         :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 9. Modifications:                                                ::
+        :: Added a line between variables and methods                       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             // Create variables to store the x and y (may improve lookup times EVER so slightly not fully sure)
@@ -275,6 +278,12 @@ namespace DocuDoctor.ViewController
             // Display the variables
             foreach (UmlVariable v in box.Variables) {
                 canvas.DrawText(v.ToString(), textX, textY, textPaint);
+                textY += lineHeight;
+            }
+            // Draw the dividing line
+            if (box.Variables.Count > 0 && box.Methods.Count > 0) {
+                textY -= lineHeight / 2;
+                canvas.DrawLine(new SKPoint(textX, textY), new SKPoint(textX + box.Width - 20, textY), borderPaint);
                 textY += lineHeight;
             }
             // Display the methods

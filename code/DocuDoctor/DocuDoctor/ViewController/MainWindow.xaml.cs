@@ -397,6 +397,7 @@ namespace DocuDoctor.ViewController
 
         private void MethodTable_ChangeSelected(object sender, SelectedCellsChangedEventArgs e)
         {
+            return;
             // Get the current method's inputs
             //MethodGrid.SelectedItem.Row
             // methodGrid.SelectedItem.Row.ItemArray
@@ -428,23 +429,78 @@ namespace DocuDoctor.ViewController
                 UmlBox b = m_data.AddBox(new SKPoint(0, 0));
                 m_data.SelectedForProperties = b;
             }
-            List<UmlVariable> l = m_data.SelectedForProperties.Variables;
+            List<UmlMethod> l = m_data.SelectedForProperties.Methods;
             DataTable t = m_data.MethodTable;
-            if (t.Columns.Count != 3) return;
-            l.Clear();
-            for (int i = 0; i < t.Rows.Count; i++)
-            {
-                string[] values = new string[3];
-                try
-                {
-                    for (int j = 0; j < 3; j++) values[j] = (string)t.Rows[i][j];
-                    l.Add(new UmlVariable(values[0], values[1], values[2]));
+
+            // Data cant simply be wiped and regenerated since input variables are stored separately
+            // We can use the fact that there are only 3 changes that can be made to the table
+            // Addition, deletion, and modifications to a single row (not multiple rows)
+
+            // Get the number of rows that are fully filled out, to check what modification was made
+            int numFilled = 0;
+            for (int r = 0; r<t.Rows.Count; r++) {
+                bool hasEmptyCell = false;
+                // Check each column in the row for empty cells
+                for (int c = 0; c < 3; c++) {
+                    if (t.Rows[r][c] is DBNull || (string)t.Rows[r][c] == "") { hasEmptyCell = true; break; }
                 }
-                catch
+                if (!hasEmptyCell) numFilled++;
+            }
+            int lIndex = 0;
+            if (numFilled < l.Count) {
+                bool actionCompleted = false;
+                // If a row is deleted, or one is created incorrectly
+                for (int r = 0; r < t.Rows.Count; r++)
                 {
-                    // Break out and dont add the item if the row isnt completely filled out
-                    // Just go to the next row like nothing happened
-                    // Console.WriteLine("Row # " + i.ToString() + " not filled out");
+                    bool hasEmptyCell = false;
+                    // Check each column in the row for empty cells
+                    for (int c = 0; c < 3; c++)
+                    {
+                        if (t.Rows[r][c] is DBNull || (string)t.Rows[r][c] == "") { hasEmptyCell = true; break; }
+                    }
+                    if (hasEmptyCell) continue;
+                    // If the row has NOT been changed, move onto next index
+                    if (l[lIndex].Protection == t.Rows[r][0].ToString()
+                        && l[lIndex].Type == t.Rows[r][1].ToString()
+                        && l[lIndex].Name == t.Rows[r][2].ToString()) { lIndex++; continue; }
+                    l.RemoveAt(lIndex);
+                    actionCompleted = true;
+                    break;
+                    // Since we removed an index, incrementing lIndex would skip over an index, so dont
+                }
+                if (!actionCompleted) l.RemoveAt(l.Count - 1);
+            } else if (numFilled > l.Count) {
+                // If a row is created, or an incorrect one is fixed
+                for (int r = 0; r < t.Rows.Count; r++)
+                {
+                    bool hasEmptyCell = false;
+                    // Check each column in the row for empty cells
+                    for (int c = 0; c < 3; c++)
+                    {
+                        if (t.Rows[r][c] is DBNull || (string)t.Rows[r][c] == "") { hasEmptyCell = true; break; }
+                    }
+                    if (hasEmptyCell) continue;
+                    // If the row has NOT been changed, move onto next index
+                    if (lIndex < l.Count
+                        && l[lIndex].Protection == t.Rows[r][0].ToString()
+                        && l[lIndex].Type == t.Rows[r][1].ToString()
+                        && l[lIndex].Name == t.Rows[r][2].ToString()) { lIndex++; continue; }
+                    l.Insert(lIndex, new UmlMethod(t.Rows[r][0].ToString() ?? "", t.Rows[r][1].ToString() ?? "", t.Rows[r][2].ToString() ?? "", []));
+                    lIndex++;
+                }
+            } else {
+                // If a row is modified
+                for (int r = 0; r < t.Rows.Count; r++) {
+                    bool hasEmptyCell = false;
+                    // Check each column in the row for empty cells
+                    for (int c = 0; c < 3; c++) {
+                        if (t.Rows[r][c] is DBNull ||  (string)t.Rows[r][c] == "") { hasEmptyCell = true; break; }
+                    }
+                    if (hasEmptyCell) continue;
+                    l[lIndex].Protection = t.Rows[r][0].ToString() ?? "";
+                    l[lIndex].Type = t.Rows[r][1].ToString() ?? "";
+                    l[lIndex].Name = t.Rows[r][2].ToString() ?? "";
+                    lIndex++;
                 }
             }
             for (int i = 0; i < MethodGrid.Items.Count; i++)
