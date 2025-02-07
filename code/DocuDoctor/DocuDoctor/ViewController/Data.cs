@@ -68,6 +68,30 @@ namespace DocuDoctor.ViewController {
             CalculateWidthHeight(box);
         }
 
+
+
+        public bool ReadFile(string fileName)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: ReadFile : Data                                       ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Riley Horling                                         ::
+        :: 3. Created: 1/28/2025                                            ::
+        :: 4. Purpose: Takes in a file name and reads it and                ::
+        ::    adds any registered boxes                                     ::
+        :: ---------------------------------------------------------------- ::
+        :: 5. Input Parameters: fileName - path to the file to be read      ::
+        :: 6. Output Parameters: bool, did the file contain any classes     ::
+        :: 7. Preconditions: None                                           ::
+        :: 8. Throws: None                                                  ::
+        :: ---------------------------------------------------------------- ::
+        :: 9. Modifications: None                                           ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
+            Parser parser = new Parser(fileName);
+            parser.parseFile();
+            return true;
+        }
+
         public void RedrawAllBoxes(SKCanvas canvas)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: RedrawAllBoxes : Data                                 ::

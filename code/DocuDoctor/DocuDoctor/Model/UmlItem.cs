@@ -1,20 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using Accessibility;
-
-namespace DocuDoctor.Model
-{
+﻿namespace DocuDoctor.Model {
     /// <summary>
     /// Common interface for variables and general items
     /// </summary>
-    public interface UmlItem
-    {
+    public interface UmlItem {
         public string Protection { get; set; }
         public string Type { get; set; }
         public string Name { get; set; }
@@ -23,8 +11,7 @@ namespace DocuDoctor.Model
     /// <summary>
     /// Data object for variables
     /// </summary>
-    public class UmlVariable : UmlItem
-    {
+    public class UmlVariable : UmlItem {
         protected string m_protection;
         public string Protection { get { return m_protection; } set { m_protection = value; } }
         protected string m_type;
@@ -50,8 +37,11 @@ namespace DocuDoctor.Model
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            m_protection = protection; m_type = type; m_name = name;
+            m_protection = protection;
+            m_type = type;
+            m_name = name;
         }
+
 
         public override string ToString()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -69,7 +59,8 @@ namespace DocuDoctor.Model
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            if (m_protection.Equals("")) return m_type + " " + m_name;
+            if(m_protection.Equals(""))
+                return m_type + " " + m_name;
             return m_protection + " " + m_type + " " + m_name;
         }
     }
@@ -77,8 +68,7 @@ namespace DocuDoctor.Model
     /// <summary>
     /// Data object for methods
     /// </summary>
-    public class UmlMethod : UmlVariable
-    {
+    public class UmlMethod : UmlVariable {
         protected List<UmlVariable> m_parameters;
         public List<UmlVariable> Parameters { get { return m_parameters; } set { m_parameters = value; } }
         public UmlMethod(string protection, string returnType, string name, List<List<String>> parameters) : base(protection, returnType, name)
@@ -101,20 +91,19 @@ namespace DocuDoctor.Model
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             m_parameters = [];
-            try
-            {
-                foreach (List<String> param in parameters) {
-                    if (param.Count != 2) throw new Exception("parameter does not have the right num of arguments");
-                    foreach (string str in param) {
-                        if (str.Equals(null) || str.Equals("")) throw new Exception("parameter value cannot be null or empty");
+            try {
+                foreach(List<String> param in parameters) {
+                    if(param.Count != 2)
+                        throw new Exception("parameter does not have the right num of arguments");
+                    foreach(string str in param) {
+                        if(str.Equals(null) || str.Equals(""))
+                            throw new Exception("parameter value cannot be null or empty");
                     }
                 }
-                foreach (List<String> param in parameters)
-                {
+                foreach(List<String> param in parameters) {
                     m_parameters.Add(new UmlVariable("", (string)param[0]!, (string)param[1]!));
                 }
-            }
-            catch (Exception ex) {
+            } catch(Exception ex) {
                 Console.WriteLine(ex.Message, ex.StackTrace);
             }
         }
@@ -136,8 +125,9 @@ namespace DocuDoctor.Model
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             string str = m_protection + " " + m_type + " " + m_name + " (";
-            for (int i = 0; i < m_parameters.Count; i++) {
-                if (i != 0) str += ", ";
+            for(int i = 0; i < m_parameters.Count; i++) {
+                if(i != 0)
+                    str += ", ";
                 str += m_parameters[i].ToString();
             }
             str += ")";

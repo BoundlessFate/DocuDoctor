@@ -1,17 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DocuDoctor.Model
-{
+﻿namespace DocuDoctor.Model {
     /// <summary>
     /// Container Object For UML Items (aka Classes, Templates, Interfaces)
     /// </summary>
-    public class UmlBox
-    {
+    public class UmlBox {
         private string m_boxType;
         public string BoxType { get { return m_boxType; } set { m_boxType = value; } }
 
@@ -51,8 +42,14 @@ namespace DocuDoctor.Model
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            m_boxType = type; m_name = name; m_variables = []; m_methods = [];
-            m_x = x; m_y = y; m_width = 0; m_height = 1;
+            m_boxType = type;
+            m_name = name;
+            m_variables = [];
+            m_methods = [];
+            m_x = x;
+            m_y = y;
+            m_width = 0;
+            m_height = 1;
         }
 
 
@@ -77,6 +74,14 @@ namespace DocuDoctor.Model
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             m_methods.Add(new UmlMethod(protection, returnType, name, parameters));
+        }
+
+        public void AddMethod(UmlMethod newMethod) {
+            m_methods.Add(newMethod);
+        }
+
+        public void AddVariable(UmlVariable newVariable) {
+            m_variables.Add(newVariable);
         }
 
         public void AddVariable(string protection, string type, string name) {
