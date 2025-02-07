@@ -60,6 +60,7 @@ namespace DocuDoctor.ViewController
         private void BindElements() {
             PropertyGrid.ItemsSource = m_data.PropertyTable.DefaultView;
             MethodGrid.ItemsSource = m_data.MethodTable.DefaultView;
+            ParameterGrid.ItemsSource = m_data.ParameterTable.DefaultView;
         }
 
         private void AddEvents()
@@ -335,12 +336,22 @@ namespace DocuDoctor.ViewController
             MethodGrid.SelectedCellsChanged += MethodTable_ChangeSelected;
 
             m_data.ParameterTable.Columns.Clear();
-            m_data.ParameterTable.Columns.Clear();
+            m_data.ParameterTable.Rows.Clear();
             ids = ["Type", "Name"];
             for (int i = 0; i < 2; i++) m_data.ParameterTable.Columns.Add(ids[i], typeof(string));
             m_data.ParameterTable.RowChanged += ParameterTable_SyncChanges;
             m_data.ParameterTable.RowDeleted += ParameterTable_SyncChanges;
             m_data.ParameterTable.TableNewRow += ParameterTable_SyncChanges;
+
+            boxName.TextChanged += Name_SyncChanges;
+        }
+
+        private void Name_SyncChanges(object sender, TextChangedEventArgs e)
+        {
+            if (m_data.SelectedForProperties == null) return;
+            m_data.SelectedForProperties.Name = boxName.Text;
+            m_data.CalculateWidthHeight(m_data.SelectedForProperties);
+            skCanvas.InvalidateVisual();
         }
 
         private void PropertyTable_SyncChanges(object sender, DataTableNewRowEventArgs e)
@@ -397,23 +408,22 @@ namespace DocuDoctor.ViewController
 
         private void MethodTable_ChangeSelected(object sender, SelectedCellsChangedEventArgs e)
         {
-            return;
+            // Lock monitoring of parameter table until this method finishes
+            m_data.methodSwitchDone = false;
             // Get the current method's inputs
-            //MethodGrid.SelectedItem.Row
-            // methodGrid.SelectedItem.Row.ItemArray
-            if (MethodGrid.SelectedItem is DataRowView) {
+            DataTable t = m_data.ParameterTable;
+            t.Rows.Clear();
+            if (MethodGrid.SelectedItem is DataRowView && MethodGrid.SelectedIndex < m_data.SelectedForProperties.Methods.Count) {
                 DataRow row = ((DataRowView)MethodGrid.SelectedItem).Row;
                 if (row[0] is DBNull || row[1] is DBNull || row[2] is DBNull) return;
                 UmlMethod selectedMethod = m_data.SelectedForProperties.Methods[MethodGrid.SelectedIndex];
-                List<UmlVariable> l = m_data.SelectedForProperties.Variables;
-                DataTable t = m_data.ParameterTable;
-
-                t.Rows.Clear();
+                List<UmlVariable> l = selectedMethod.Parameters;
                 for (int i = 0; i < l.Count; i++)
                 {
                     t.Rows.Add(l[i].Type, l[i].Name);
                 }
             }
+            m_data.methodSwitchDone = true;
         }
 
         private void MethodTable_SyncChanges(object sender, DataTableNewRowEventArgs e)
@@ -542,6 +552,9 @@ namespace DocuDoctor.ViewController
 
         private void ParameterTable_SyncChanges(object sender, DataRowChangeEventArgs e)
         {
+            // Events for switching methods and the syncing of changes can happen simulatenously, causing some issues...
+            // Wait until the switch is 100% complete before starting to monitor changes in parameter table
+            if (!m_data.methodSwitchDone) return;
             if (m_data.SelectedForProperties == null || MethodGrid.SelectedIndex == -1) {
                 m_data.ParameterTable.Clear();
                 return;
@@ -552,7 +565,7 @@ namespace DocuDoctor.ViewController
             l.Clear();
             for (int i = 0; i < t.Rows.Count; i++)
             {
-                string[] values = new string[3];
+                string[] values = new string[2];
                 try
                 {
                     for (int j = 0; j < 2; j++) values[j] = (string)t.Rows[i][j];

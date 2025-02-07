@@ -37,6 +37,8 @@ namespace DocuDoctor.ViewController
         private DataTable m_parameterTable;
         public DataTable ParameterTable { get { return m_parameterTable; } set { m_parameterTable = value; } }
 
+        public bool methodSwitchDone;
+
         public Data()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: Data : Data                                           ::
@@ -60,6 +62,7 @@ namespace DocuDoctor.ViewController
             m_propertyTable = new DataTable();
             m_methodTable = new DataTable();
             m_parameterTable = new DataTable();
+            methodSwitchDone = true;
         }
 
         public UmlBox AddBox(SKPoint pos)

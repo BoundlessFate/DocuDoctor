@@ -87,7 +87,7 @@
                     Grid.Column="0"
                     >
                     <DataGrid Name="ParameterGrid" AutoGenerateColumns="True" VerticalAlignment="Top" MinHeight="750" MaxHeight="750"
-                                        VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,30,0,0">
+                                        VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,30,0,0" ColumnWidth="*">
                     </DataGrid>
                 </Grid>
                 <!-- Tool Bar -->
@@ -151,13 +151,13 @@
                                 <Grid Grid.Row="1">
                                     <Label Foreground="#f8f8ff" Content="Properties:" VerticalAlignment="Top" />
                                     <DataGrid Name="PropertyGrid" AutoGenerateColumns="True" Height="200" VerticalAlignment="Top" 
-                                        VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,30,0,0">
+                                        VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,30,0,0" ColumnWidth="*">
                                     </DataGrid>
                                 </Grid>
                                 <Grid Grid.Row="2">
                                     <Label Foreground="#f8f8ff" Content="Methods:" VerticalAlignment="Top" />
                                     <DataGrid Name="MethodGrid" AutoGenerateColumns="True" Height="200" VerticalAlignment="Top" 
-                                        VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,30,0,0">
+                                        VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,30,0,0" ColumnWidth="*">
                                     </DataGrid>
                                 </Grid>
                             </Grid>
