@@ -88,7 +88,11 @@ namespace DocuDoctor.ViewController {
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             Parser parser = new Parser(fileName);
-            parser.parseFile();
+            foreach(UmlBox box in parser.ParseFile()) {
+                CalculateWidthHeight(box);
+                m_boxes.Add(box);
+
+            }
             return true;
         }
 

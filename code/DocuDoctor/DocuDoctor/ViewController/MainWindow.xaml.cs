@@ -87,7 +87,9 @@ namespace DocuDoctor.ViewController {
         private void FileButton_OnClick(object sender, RoutedEventArgs e) {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.ShowDialog();
-            m_data.ReadFile(openFileDialog.FileName);
+            bool newBoxes = m_data.ReadFile(openFileDialog.FileName);
+            if(newBoxes)
+                skCanvas.InvalidateVisual();
         }
 
         private void Screen_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)

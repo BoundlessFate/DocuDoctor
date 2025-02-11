@@ -108,6 +108,10 @@
             }
         }
 
+        public UmlMethod(string protection, string returnType, string name, List<UmlVariable> parameters) : base(protection, returnType, name) {
+            m_parameters = parameters;
+        }
+
         public override string ToString()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: ToString : UmlMethod                                  ::
