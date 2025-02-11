@@ -81,11 +81,9 @@ namespace DocuDoctor.ViewController
         :: 9. Modifications: 1/28/25 - Added output parameter for box       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            UmlBox box = new UmlBox("Class", "TestClass", (int)pos.X, (int)pos.Y);
+            UmlBox box = new UmlBox("Class", "NewClass", (int)pos.X, (int)pos.Y);
             m_selectedForProperties = box;
             m_boxes.Add(box);
-            box.AddMethod("public", "int", "TestMethod", [["int", "testOne"], ["double", "testTwo"]]);
-            box.AddVariable("public", "float", "TestVariable");
             CalculateWidthHeight(box);
             return box;
         }
@@ -146,6 +144,7 @@ namespace DocuDoctor.ViewController
             if (selectedBox == null) return false;
             selectedBox.X += (float)1.5*deltaX; selectedBox.Y += (float)1.5* deltaY;
             m_movedBox = selectedBox;
+            SelectedForProperties = selectedBox;
             return true;
         }
 

@@ -135,7 +135,7 @@ namespace DocuDoctor.Model
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            string str = m_protection + " " + m_type + " " + m_name + " (";
+            string str = m_protection + " " + m_type + " " + m_name + "(";
             for (int i = 0; i < m_parameters.Count; i++) {
                 if (i != 0) str += ", ";
                 str += m_parameters[i].ToString();

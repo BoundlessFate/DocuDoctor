@@ -216,6 +216,7 @@ namespace DocuDoctor.ViewController
                 m_data.TranslationX = m_initialTransformX + ((float)curPos.X-m_initialMousePos.X) / m_data.Scale;
                 m_data.TranslationY = m_initialTransformY + ((float)curPos.Y-m_initialMousePos.Y) /m_data.Scale;
             }
+            UpdateProperties();
             skCanvas.InvalidateVisual();
             m_lastMousePos = curMousePos;
         }
@@ -242,13 +243,8 @@ namespace DocuDoctor.ViewController
             mPos.Y -= m_data.TranslationY; mPos.Y /= m_data.Scale;
             SKPoint internalPos = new((float)mPos.X, (float)mPos.Y);
             if (e.RightButton == MouseButtonState.Pressed) {
-                m_data.AddBox(internalPos); 
-                skCanvas.InvalidateVisual();
-                UpdateProperties();
-                return; 
-            }
-            if (e.MiddleButton == MouseButtonState.Pressed) {
-                m_data.RemoveBox(internalPos); 
+                if (m_ctrlClicked) m_data.RemoveBox(internalPos);
+                else m_data.AddBox(internalPos); 
                 skCanvas.InvalidateVisual();
                 UpdateProperties();
                 return; 
@@ -276,11 +272,10 @@ namespace DocuDoctor.ViewController
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             UmlBox cur = m_data.SelectedForProperties;
-            boxName.Text = "";
             m_data.PropertyTable.Rows.Clear();
             m_data.MethodTable.Rows.Clear();
             m_data.ParameterTable.Rows.Clear();
-            if (cur == null) return;
+            if (cur == null) { boxName.Text = ""; return; }
             boxName.Text = cur.Name;
             for (int i = 0; i < cur.Variables.Count; i++) {
                 m_data.PropertyTable.Rows.Add(cur.Variables[i].Protection, cur.Variables[i].Type, cur.Variables[i].Name);
