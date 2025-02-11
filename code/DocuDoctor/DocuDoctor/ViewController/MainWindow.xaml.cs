@@ -2,6 +2,7 @@
 using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
+using System.Diagnostics.Metrics;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using System.Windows;
@@ -16,6 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Shell;
+using System.Windows.Threading;
 using DocuDoctor.Model;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
@@ -34,6 +36,12 @@ namespace DocuDoctor.ViewController
         private float m_initialTransformX;
         private float m_initialTransformY;
         private bool m_ctrlClicked;
+
+        // Not actual data, but performance monitors so kept in frontend
+        private PerformanceCounter cpuCounter;
+        private PerformanceCounter ramCounter;
+        private DispatcherTimer timer;
+        private ulong totalRam;
 
         public MainWindow()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -309,6 +317,36 @@ namespace DocuDoctor.ViewController
             ResizeMode = ResizeMode.CanResize;
             m_ctrlClicked = false;
             ResetProperties();
+            InitResourceMonitors();
+        }
+
+        private void InitResourceMonitors() {
+            cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+            ramCounter = new PerformanceCounter("Memory", "Available MBytes");
+            totalRam = GetTotalMemoryInBytes()/1000000;
+            timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(3)
+            };
+            timer.Tick += UpdateResourceUsage;
+            timer.Start();
+        }
+
+        private void UpdateResourceUsage(object sender, EventArgs e)
+        {
+            float cpuUsage = cpuCounter.NextValue();
+            float ramAvailable = ramCounter.NextValue();
+            float ramUsed = totalRam - ramAvailable;
+            float ramUsagePercent = (ramUsed / totalRam) * 100;
+            CpuUsageBar.Value = cpuUsage;
+            CpuUsageText.Text = $"CPU Usage: {cpuUsage:F1}%";
+            RamUsageBar.Value = ramUsagePercent;
+            RamUsageText.Text = $"RAM: {ramUsagePercent:F1}%";
+        }
+
+        static ulong GetTotalMemoryInBytes()
+        {
+            return new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory;
         }
 
         private void ResetProperties() {
