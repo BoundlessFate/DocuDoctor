@@ -250,12 +250,29 @@ namespace DocuDoctor.ViewController
             mPos.X -= m_data.TranslationX; mPos.X /= m_data.Scale;
             mPos.Y -= m_data.TranslationY; mPos.Y /= m_data.Scale;
             SKPoint internalPos = new((float)mPos.X, (float)mPos.Y);
-            if (e.RightButton == MouseButtonState.Pressed) {
-                if (m_ctrlClicked) m_data.RemoveBox(internalPos);
-                else m_data.AddBox(internalPos); 
-                skCanvas.InvalidateVisual();
-                UpdateProperties();
-                return; 
+            if (e.LeftButton == MouseButtonState.Pressed) {
+                switch (m_data.toolbarSelection) {
+                    case 1:
+                        m_data.RemoveBox(internalPos);
+                        skCanvas.InvalidateVisual();
+                        UpdateProperties();
+                        break;
+                    case 2:
+                        m_data.AddBox(internalPos, "Class");
+                        skCanvas.InvalidateVisual();
+                        UpdateProperties();
+                        break;
+                    case 3:
+                        m_data.AddBox(internalPos, "Interface");
+                        skCanvas.InvalidateVisual();
+                        UpdateProperties();
+                        break;
+                    case 4:
+                        m_data.AddBox(internalPos, "Template");
+                        skCanvas.InvalidateVisual();
+                        UpdateProperties();
+                        break;
+                }
             }
             if (e.LeftButton == MouseButtonState.Released) return;
             m_lastMousePos = internalPos;
@@ -707,6 +724,49 @@ namespace DocuDoctor.ViewController
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             this.Close();
+        }
+
+        private void ClearAllToolbarButtons() {
+            Deselect.Background = new SolidColorBrush(Colors.Transparent);
+            Delete.Background = new SolidColorBrush(Colors.Transparent);
+            AddClass.Background = new SolidColorBrush(Colors.Transparent);
+            AddInterface.Background = new SolidColorBrush(Colors.Transparent);
+            AddTemplate.Background = new SolidColorBrush(Colors.Transparent);
+        }
+
+        private void buttonDeselect_Click(object sender, RoutedEventArgs e)
+        {
+            ClearAllToolbarButtons();
+            Deselect.Background = new SolidColorBrush(Colors.Yellow);
+            m_data.toolbarSelection = 0;
+        }
+
+        private void buttonDelete_Click(object sender, RoutedEventArgs e)
+        {
+            ClearAllToolbarButtons();
+            Delete.Background = new SolidColorBrush(Colors.Yellow);
+            m_data.toolbarSelection = 1;
+        }
+
+        private void buttonAddClass_Click(object sender, RoutedEventArgs e)
+        {
+            ClearAllToolbarButtons();
+            AddClass.Background = new SolidColorBrush(Colors.Yellow);
+            m_data.toolbarSelection = 2;
+        }
+
+        private void buttonAddInterface_Click(object sender, RoutedEventArgs e)
+        {
+            ClearAllToolbarButtons();
+            AddInterface.Background = new SolidColorBrush(Colors.Yellow);
+            m_data.toolbarSelection = 3;
+        }
+
+        private void buttonAddTemplate_Click(object sender, RoutedEventArgs e)
+        {
+            ClearAllToolbarButtons();
+            AddTemplate.Background = new SolidColorBrush(Colors.Yellow);
+            m_data.toolbarSelection = 4;
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

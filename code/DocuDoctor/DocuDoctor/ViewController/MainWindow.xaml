@@ -92,9 +92,26 @@
                 </Grid>
                 <!-- Tool Bar -->
                 <Grid
-                    Background="#313638" 
+                    Background="#f8f8ff" 
                     Grid.Column="1"
                     >
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <Button x:Name="Deselect" Width="50" Background="Transparent" BorderBrush="Transparent" Click="buttonDeselect_Click">
+                            <Image Source="../assets/Deselect.png" Width="20" Height="35" />
+                        </Button>
+                        <Button x:Name="Delete" Width="50" Background="Transparent" BorderBrush="Transparent" Click="buttonDelete_Click">
+                            <Image Source="../assets/EraseItem.png" Width="20" Height="35" />
+                        </Button>
+                        <Button x:Name="AddClass" Width="50" Background="Transparent" BorderBrush="Transparent" Click="buttonAddClass_Click">
+                            <Image Source="../assets/AddClass.png" Width="20" Height="35" />
+                        </Button>
+                        <Button x:Name="AddInterface" Width="50" Background="Transparent" BorderBrush="Transparent" Click="buttonAddInterface_Click">
+                            <Image Source="../assets/AddInterface.png" Width="20" Height="35" />
+                        </Button>
+                        <Button x:Name="AddTemplate" Width="50" Background="Transparent" BorderBrush="Transparent" Click="buttonAddTemplate_Click">
+                            <Image Source="../assets/AddTemplate.png" Width="20" Height="35" />
+                        </Button>
+                    </StackPanel>
                 </Grid>
                 <Grid Grid.Column="2">
                     <Grid.RowDefinitions>

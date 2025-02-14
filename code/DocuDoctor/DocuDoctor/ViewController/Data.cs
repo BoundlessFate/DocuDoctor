@@ -39,6 +39,8 @@ namespace DocuDoctor.ViewController
 
         public bool methodSwitchDone;
 
+        public int toolbarSelection;
+
         public Data()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: Data : Data                                           ::
@@ -63,6 +65,7 @@ namespace DocuDoctor.ViewController
             m_methodTable = new DataTable();
             m_parameterTable = new DataTable();
             methodSwitchDone = true;
+            toolbarSelection = 0;
         }
 
         public UmlBox AddBox(SKPoint pos)
@@ -82,6 +85,14 @@ namespace DocuDoctor.ViewController
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             UmlBox box = new UmlBox("Class", "NewClass", (int)pos.X, (int)pos.Y);
+            m_selectedForProperties = box;
+            m_boxes.Add(box);
+            CalculateWidthHeight(box);
+            return box;
+        }
+
+        public UmlBox AddBox(SKPoint pos, string type) {
+            UmlBox box = new UmlBox(type, "NewClass", (int)pos.X, (int)pos.Y);
             m_selectedForProperties = box;
             m_boxes.Add(box);
             CalculateWidthHeight(box);
