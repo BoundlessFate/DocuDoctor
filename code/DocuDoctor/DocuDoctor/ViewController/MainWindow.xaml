@@ -13,7 +13,7 @@
         Title="DocuDoctor" 
         Height="450" Width="800" 
         Background="#313638" 
-        Icon = "../assets/DocumentationDoctor.ico"
+        Icon = "..\assets\Docudoctor.ico"
         MouseLeftButtonDown="Window_MouseLeftButtonDown">
     <!-- Disable the default top bar -->
     <WindowChrome.WindowChrome>

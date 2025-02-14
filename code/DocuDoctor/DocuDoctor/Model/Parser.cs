@@ -51,21 +51,17 @@ namespace DocuDoctor.Model {
             try {
 
                 //Initialize 
-                Regex commentAndString = new Regex("\\/\\*[\\S\\s]*\\*\\/|\"[\\S\\s]*\"|'[\\S\\s]*'");
+                Regex stringsAndComments = new Regex("\"[\\S\\s]*?\"|'[\\S\\s]*?'|\\/\\*[\\S\\s]*?\\*\\/|\\/\\/.*?[\\n]");
+
                 Regex whiteSpace = new Regex("[ \t\n\r]+");
                 using(StreamReader sr = new StreamReader(file)) {
                     while(!sr.EndOfStream) {
                         string line = sr.ReadLine();
-
-                        //Sees if ther are any comments in the line and cuts them out
-                        int cutoff = line.IndexOf("//");
-                        if(cutoff >= 0)
-                            line = line.Remove(cutoff);
-                        fileContent += line;
+                        fileContent += line + '\n';
                     }
                 }
-
-                fileContent = commentAndString.Replace(fileContent, " ");
+                MatchCollection temp = stringsAndComments.Matches(fileContent);
+                fileContent = stringsAndComments.Replace(fileContent, " ");
                 fileContent = whiteSpace.Replace(fileContent, " ");
             } catch(Exception ex) {
                 if(ex is FileNotFoundException || ex is NullReferenceException) {
@@ -101,14 +97,14 @@ namespace DocuDoctor.Model {
                 string chunk = match.Value;
                 if(chunk.Contains('=') || (chunk.Contains(';') && !chunk.Contains(')'))) {
                     UmlVariable temp = readVariable(chunk);
-                    if(temp != null && result[result.Count - 1] != null) {
+                    if(temp != null && result.Count > 0 && result[result.Count - 1] != null) {
                         result[result.Count - 1].AddVariable(temp);
                     }
                 } else if(chunk.Contains("class ")) {
                     result.Add(readClass(chunk));
-                } else {
+                } else if(chunk.Contains('(')) {
                     UmlMethod method = readMethod(chunk);
-                    if(method != null && result[result.Count - 1] != null) {
+                    if(method != null && result.Count > 0 && result[result.Count - 1] != null) {
                         result[result.Count - 1].AddMethod(method);
                     }
                 }
@@ -160,6 +156,9 @@ namespace DocuDoctor.Model {
             return method;
         }
         private UmlBox readClass(string chunk) {
+            if(chunk.Contains('{')) {
+                chunk = chunk.Remove(chunk.LastIndexOf('{')).Trim();
+            }
             return new UmlBox("Class", chunk.Substring(chunk.LastIndexOf(" ")), 0, 0);
         }
     }
