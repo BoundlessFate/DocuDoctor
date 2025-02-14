@@ -282,7 +282,7 @@ namespace DocuDoctor.ViewController
             }
             for (int i = 0; i < cur.Methods.Count; i++)
             {
-                m_data.MethodTable.Rows.Add(cur.Methods[i].Protection, cur.Methods[i].Name, cur.Variables[i].Name);
+                m_data.MethodTable.Rows.Add(cur.Methods[i].Protection, cur.Methods[i].Name, cur.Methods[i].Name);
             }
         }
 
