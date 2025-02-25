@@ -111,6 +111,12 @@
                         <Button x:Name="AddTemplate" Width="50" Background="Transparent" BorderBrush="Transparent" Click="buttonAddTemplate_Click">
                             <Image Source="../assets/AddTemplate.png" Width="20" Height="35" />
                         </Button>
+                        <Button x:Name="AddArrow" Width="50" Background="Transparent" BorderBrush="Transparent" Click="buttonAddArrow_Click">
+                            <Image Source="../assets/arrow.png" Width="20" Height="35" />
+                        </Button>
+                        <Button x:Name="AddDottedArrow" Width="50" Background="Transparent" BorderBrush="Transparent" Click="buttonAddDottedArrow_Click">
+                            <Image Source="../assets/dottedarrow.png" Width="20" Height="35" />
+                        </Button>
                     </StackPanel>
                 </Grid>
                 <Grid Grid.Column="2">

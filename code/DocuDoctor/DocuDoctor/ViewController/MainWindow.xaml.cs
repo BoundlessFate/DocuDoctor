@@ -211,7 +211,7 @@ namespace DocuDoctor.ViewController
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            if (!m_clicked) return;
+            if (!m_clicked || m_data.toolbarSelection != 0) return;
             else if (m_clicked && e.MouseDevice.LeftButton == MouseButtonState.Released) { m_clicked = false; return; }
             System.Windows.Point mPos = e.GetPosition(skCanvas);
             mPos.X -= m_data.TranslationX; mPos.X /= m_data.Scale;
@@ -271,6 +271,12 @@ namespace DocuDoctor.ViewController
                         m_data.AddBox(internalPos, "Template");
                         skCanvas.InvalidateVisual();
                         UpdateProperties();
+                        break;
+                    case 5:
+                        m_data.AddArrow((float)mPos.X, (float)mPos.Y, 0);
+                        break;
+                    case 6:
+                        m_data.AddArrow((float)mPos.X, (float)mPos.Y, 1);
                         break;
                 }
             }
@@ -732,6 +738,8 @@ namespace DocuDoctor.ViewController
             AddClass.Background = new SolidColorBrush(Colors.Transparent);
             AddInterface.Background = new SolidColorBrush(Colors.Transparent);
             AddTemplate.Background = new SolidColorBrush(Colors.Transparent);
+            AddArrow.Background = new SolidColorBrush(Colors.Transparent);
+            AddDottedArrow.Background = new SolidColorBrush(Colors.Transparent);
         }
 
         private void buttonDeselect_Click(object sender, RoutedEventArgs e)
@@ -767,6 +775,20 @@ namespace DocuDoctor.ViewController
             ClearAllToolbarButtons();
             AddTemplate.Background = new SolidColorBrush(Colors.Yellow);
             m_data.toolbarSelection = 4;
+        }
+
+        private void buttonAddArrow_Click(object sender, RoutedEventArgs e)
+        {
+            ClearAllToolbarButtons();
+            AddArrow.Background = new SolidColorBrush(Colors.Yellow);
+            m_data.toolbarSelection = 5;
+        }
+
+        private void buttonAddDottedArrow_Click(object sender, RoutedEventArgs e)
+        {
+            ClearAllToolbarButtons();
+            AddDottedArrow.Background = new SolidColorBrush(Colors.Yellow);
+            m_data.toolbarSelection = 6;
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -828,6 +850,7 @@ namespace DocuDoctor.ViewController
             e.Surface.Canvas.Translate(m_data.TranslationX, m_data.TranslationY);
             e.Surface.Canvas.Scale(m_data.Scale);
             m_data.RedrawAllBoxes(e.Surface.Canvas);
+            m_data.RedrawAllArrows(e.Surface.Canvas);
         }
     }
 }
