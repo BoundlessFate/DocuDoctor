@@ -2,6 +2,7 @@
 using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
+using System.Diagnostics.Metrics;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using System.Windows;
@@ -16,6 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Shell;
+using System.Windows.Threading;
 using DocuDoctor.Model;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
@@ -34,6 +36,12 @@ namespace DocuDoctor.ViewController
         private float m_initialTransformX;
         private float m_initialTransformY;
         private bool m_ctrlClicked;
+
+        // Not actual data, but performance monitors so kept in frontend
+        private PerformanceCounter cpuCounter;
+        private PerformanceCounter ramCounter;
+        private DispatcherTimer timer;
+        private ulong totalRam;
 
         public MainWindow()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -203,7 +211,7 @@ namespace DocuDoctor.ViewController
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            if (!m_clicked) return;
+            if (!m_clicked || m_data.toolbarSelection != 0) return;
             else if (m_clicked && e.MouseDevice.LeftButton == MouseButtonState.Released) { m_clicked = false; return; }
             System.Windows.Point mPos = e.GetPosition(skCanvas);
             mPos.X -= m_data.TranslationX; mPos.X /= m_data.Scale;
@@ -242,12 +250,37 @@ namespace DocuDoctor.ViewController
             mPos.X -= m_data.TranslationX; mPos.X /= m_data.Scale;
             mPos.Y -= m_data.TranslationY; mPos.Y /= m_data.Scale;
             SKPoint internalPos = new((float)mPos.X, (float)mPos.Y);
-            if (e.RightButton == MouseButtonState.Pressed) {
-                if (m_ctrlClicked) m_data.RemoveBox(internalPos);
-                else m_data.AddBox(internalPos); 
-                skCanvas.InvalidateVisual();
-                UpdateProperties();
-                return; 
+            if (e.LeftButton == MouseButtonState.Pressed) {
+                switch (m_data.toolbarSelection) {
+                    case 1:
+                        m_data.RemoveBox(internalPos);
+                        skCanvas.InvalidateVisual();
+                        UpdateProperties();
+                        break;
+                    case 2:
+                        m_data.AddBox(internalPos, "Class");
+                        skCanvas.InvalidateVisual();
+                        UpdateProperties();
+                        break;
+                    case 3:
+                        m_data.AddBox(internalPos, "Interface");
+                        skCanvas.InvalidateVisual();
+                        UpdateProperties();
+                        break;
+                    case 4:
+                        m_data.AddBox(internalPos, "Template");
+                        skCanvas.InvalidateVisual();
+                        UpdateProperties();
+                        break;
+                    case 5:
+                        m_data.AddArrow((float)mPos.X, (float)mPos.Y, 0);
+                        skCanvas.InvalidateVisual();
+                        break;
+                    case 6:
+                        m_data.AddArrow((float)mPos.X, (float)mPos.Y, 1);
+                        skCanvas.InvalidateVisual();
+                        break;
+                }
             }
             if (e.LeftButton == MouseButtonState.Released) return;
             m_lastMousePos = internalPos;
@@ -309,6 +342,36 @@ namespace DocuDoctor.ViewController
             ResizeMode = ResizeMode.CanResize;
             m_ctrlClicked = false;
             ResetProperties();
+            InitResourceMonitors();
+        }
+
+        private void InitResourceMonitors() {
+            cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+            ramCounter = new PerformanceCounter("Memory", "Available MBytes");
+            totalRam = GetTotalMemoryInBytes()/1000000;
+            timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(3)
+            };
+            timer.Tick += UpdateResourceUsage;
+            timer.Start();
+        }
+
+        private void UpdateResourceUsage(object sender, EventArgs e)
+        {
+            float cpuUsage = cpuCounter.NextValue();
+            float ramAvailable = ramCounter.NextValue();
+            float ramUsed = totalRam - ramAvailable;
+            float ramUsagePercent = (ramUsed / totalRam) * 100;
+            CpuUsageBar.Value = cpuUsage;
+            CpuUsageText.Text = $"CPU Usage: {cpuUsage:F1}%";
+            RamUsageBar.Value = ramUsagePercent;
+            RamUsageText.Text = $"RAM: {ramUsagePercent:F1}%";
+        }
+
+        static ulong GetTotalMemoryInBytes()
+        {
+            return new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory;
         }
 
         private void ResetProperties() {
@@ -671,6 +734,65 @@ namespace DocuDoctor.ViewController
             this.Close();
         }
 
+        private void ClearAllToolbarButtons() {
+            Deselect.Background = new SolidColorBrush(Colors.Transparent);
+            Delete.Background = new SolidColorBrush(Colors.Transparent);
+            AddClass.Background = new SolidColorBrush(Colors.Transparent);
+            AddInterface.Background = new SolidColorBrush(Colors.Transparent);
+            AddTemplate.Background = new SolidColorBrush(Colors.Transparent);
+            AddArrow.Background = new SolidColorBrush(Colors.Transparent);
+            AddDottedArrow.Background = new SolidColorBrush(Colors.Transparent);
+        }
+
+        private void buttonDeselect_Click(object sender, RoutedEventArgs e)
+        {
+            ClearAllToolbarButtons();
+            Deselect.Background = new SolidColorBrush(Colors.Yellow);
+            m_data.toolbarSelection = 0;
+        }
+
+        private void buttonDelete_Click(object sender, RoutedEventArgs e)
+        {
+            ClearAllToolbarButtons();
+            Delete.Background = new SolidColorBrush(Colors.Yellow);
+            m_data.toolbarSelection = 1;
+        }
+
+        private void buttonAddClass_Click(object sender, RoutedEventArgs e)
+        {
+            ClearAllToolbarButtons();
+            AddClass.Background = new SolidColorBrush(Colors.Yellow);
+            m_data.toolbarSelection = 2;
+        }
+
+        private void buttonAddInterface_Click(object sender, RoutedEventArgs e)
+        {
+            ClearAllToolbarButtons();
+            AddInterface.Background = new SolidColorBrush(Colors.Yellow);
+            m_data.toolbarSelection = 3;
+        }
+
+        private void buttonAddTemplate_Click(object sender, RoutedEventArgs e)
+        {
+            ClearAllToolbarButtons();
+            AddTemplate.Background = new SolidColorBrush(Colors.Yellow);
+            m_data.toolbarSelection = 4;
+        }
+
+        private void buttonAddArrow_Click(object sender, RoutedEventArgs e)
+        {
+            ClearAllToolbarButtons();
+            AddArrow.Background = new SolidColorBrush(Colors.Yellow);
+            m_data.toolbarSelection = 5;
+        }
+
+        private void buttonAddDottedArrow_Click(object sender, RoutedEventArgs e)
+        {
+            ClearAllToolbarButtons();
+            AddDottedArrow.Background = new SolidColorBrush(Colors.Yellow);
+            m_data.toolbarSelection = 6;
+        }
+
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: Window_MouseLeftButtonDown : MainWindow               ::
@@ -730,6 +852,7 @@ namespace DocuDoctor.ViewController
             e.Surface.Canvas.Translate(m_data.TranslationX, m_data.TranslationY);
             e.Surface.Canvas.Scale(m_data.Scale);
             m_data.RedrawAllBoxes(e.Surface.Canvas);
+            m_data.RedrawAllArrows(e.Surface.Canvas);
         }
     }
 }

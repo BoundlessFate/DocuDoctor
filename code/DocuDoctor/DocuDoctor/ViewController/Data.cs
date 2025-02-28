@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using DocuDoctor.Model;
 using SkiaSharp;
 
@@ -28,7 +29,8 @@ namespace DocuDoctor.ViewController
         public float TranslationY { get { return m_translationY; } set { m_translationY = value; } }
 
         private UmlBox m_selectedForProperties;
-        public UmlBox SelectedForProperties { get { return m_selectedForProperties; } set { m_selectedForProperties = value; } }
+        public UmlBox SelectedForProperties { get { return m_selectedForProperties; } set { 
+                m_selectedForProperties = value; } }
 
         private DataTable m_propertyTable;
         public DataTable PropertyTable { get { return m_propertyTable; } set { m_propertyTable = value; } }
@@ -38,6 +40,8 @@ namespace DocuDoctor.ViewController
         public DataTable ParameterTable { get { return m_parameterTable; } set { m_parameterTable = value; } }
 
         public bool methodSwitchDone;
+
+        public int toolbarSelection;
 
         public Data()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -63,6 +67,7 @@ namespace DocuDoctor.ViewController
             m_methodTable = new DataTable();
             m_parameterTable = new DataTable();
             methodSwitchDone = true;
+            toolbarSelection = 0;
         }
 
         public UmlBox AddBox(SKPoint pos)
@@ -88,6 +93,86 @@ namespace DocuDoctor.ViewController
             return box;
         }
 
+        public UmlBox AddBox(SKPoint pos, string type) {
+            UmlBox box = new UmlBox(type, "NewClass", (int)pos.X, (int)pos.Y);
+            m_selectedForProperties = box;
+            m_boxes.Add(box);
+            CalculateWidthHeight(box);
+            return box;
+        }
+
+        public UmlBox? FindBoxAtCoords(float x, float y) {
+            // If you are already moving a box, keep moving that one
+            // Find the box you are trying to move based on the x y coordinates
+            UmlBox selectedBox = m_movedBox;
+            if (selectedBox == null)
+            {
+                // Search backwards, so you move the topmost box (since topmost is inherently drawn last aka on top)
+                for (int i = m_boxes.Count - 1; i >= 0; i--)
+                {
+                    UmlBox b = m_boxes[i];
+                    if (b.X <= x && x < b.X + b.Width && b.Y <= y && y < b.Y + b.Height)
+                    {
+                        selectedBox = b;
+                        // Move the current box to the end of the boxlist so its drawn on top
+                        m_boxes.RemoveAt(i); m_boxes.Add(b);
+                        break;
+                    }
+                }
+            }
+            return selectedBox;
+        }
+
+        public void DrawArrow(SKCanvas canvas, (float, float) boxOneCoords, (float, float) boxTwoCoords, bool isDotted) {
+            SKPaint arrowPaint = new SKPaint {
+                Color = SKColors.White,
+                StrokeWidth = 3,
+                IsAntialias = true
+            };
+            SKPaint arrowPaintDotted = new SKPaint {
+                Color = SKColors.White,
+                StrokeWidth = 3,
+                IsAntialias = true,
+                PathEffect = SKPathEffect.CreateDash(new float[] { 10, 10 }, 0) // Dotted pattern (10px on, 10px off)
+            };
+            // Draw the line
+            if (isDotted) canvas.DrawLine(new SKPoint(boxOneCoords.Item1, boxOneCoords.Item2), new SKPoint(boxTwoCoords.Item1, boxTwoCoords.Item2), arrowPaintDotted);
+            else canvas.DrawLine(new SKPoint(boxOneCoords.Item1, boxOneCoords.Item2), new SKPoint(boxTwoCoords.Item1, boxTwoCoords.Item2), arrowPaint);
+            // Draw the arrowhead
+            // Calculate the direction vector as atan2 value
+            float angle = (float)Math.Atan2(boxTwoCoords.Item2-boxOneCoords.Item2, boxTwoCoords.Item1-boxOneCoords.Item1);
+            float arrowAngleOne = angle+(float)Math.PI/6;
+            float arrowAngleTwo = angle-(float)Math.PI/6;
+            float arrowheadSize = 20;
+            // Calculate arrowhead points
+            SKPoint arrowPointOne = new SKPoint(
+                boxTwoCoords.Item1 - arrowheadSize * (float)Math.Cos(arrowAngleOne),
+                boxTwoCoords.Item2 - arrowheadSize * (float)Math.Sin(arrowAngleOne)
+            );
+            SKPoint arrowPointTwo = new SKPoint(
+                boxTwoCoords.Item1 - arrowheadSize * (float)Math.Cos(arrowAngleTwo),
+                boxTwoCoords.Item2 - arrowheadSize * (float)Math.Sin(arrowAngleTwo)
+            );
+            canvas.DrawLine(arrowPointOne, new SKPoint(boxTwoCoords.Item1, boxTwoCoords.Item2), arrowPaint);
+            canvas.DrawLine(arrowPointTwo, new SKPoint(boxTwoCoords.Item1, boxTwoCoords.Item2), arrowPaint);
+        }
+
+        public void RedrawAllArrows(SKCanvas canvas) {
+            // Get each box into a hashmap of id, box pairs
+            Dictionary<long, UmlBox> d = new Dictionary<long, UmlBox>();
+            foreach (UmlBox box in m_boxes) d.Add(box.ID, box);
+            foreach (UmlBox box in m_boxes) {
+                for (int j = box.Arrows.Count-1; j >= 0; j--) {
+                    long i = box.Arrows[j].Item1;
+                    int t = box.Arrows[j].Item2;
+                    if (d.TryGetValue(i, out UmlBox arrowEnd)) DrawArrow(canvas, (box.X, box.Y), (arrowEnd.X, arrowEnd.Y), t==1);
+                    // The else block being hit means the arrows end pos does not exist anymore
+                    // Therefore it should be removed from the list of arrows
+                    else box.Arrows.RemoveAt(j);
+                }
+            }
+        }
+
         public void RedrawAllBoxes(SKCanvas canvas)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: RedrawAllBoxes : Data                                 ::
@@ -107,6 +192,17 @@ namespace DocuDoctor.ViewController
             foreach (UmlBox b in m_boxes) DisplayBox(b, canvas);
         }
 
+        public void AddArrow(float x, float y, int arrowType) {
+            // Return if no first box selected
+            if (m_selectedForProperties == null) return;
+            UmlBox? selectedBox = FindBoxAtCoords(x, y);
+            // Return if no second box selected
+            if (selectedBox == null) return;
+            // Return if first and second box are the same
+            if (selectedBox.ID == SelectedForProperties.ID) return;
+            SelectedForProperties.AddArrow(selectedBox.ID, arrowType);
+        }
+
         public bool MoveBox(float x, float y, float deltaX, float deltaY)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: MoveBox : Data                                        ::
@@ -124,23 +220,7 @@ namespace DocuDoctor.ViewController
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            // If you are already moving a box, keep moving that one
-            // Find the box you are trying to move based on the x y coordinates
-            UmlBox selectedBox = m_movedBox;
-            if (selectedBox == null)
-            {
-                // Search backwards, so you move the topmost box (since topmost is inherently drawn last aka on top)
-                for (int i=m_boxes.Count-1; i>=0; i--)
-                {
-                    UmlBox b = m_boxes[i];
-                    if (b.X <= x && x < b.X + b.Width && b.Y <= y && y < b.Y + b.Height) {
-                        selectedBox = b;
-                        // Move the current box to the end of the boxlist so its drawn on top
-                        m_boxes.RemoveAt(i); m_boxes.Add(b);
-                        break;
-                    }
-                }
-            }
+            UmlBox? selectedBox = FindBoxAtCoords(x, y);
             if (selectedBox == null) return false;
             selectedBox.X += (float)1.5*deltaX; selectedBox.Y += (float)1.5* deltaY;
             m_movedBox = selectedBox;
@@ -248,7 +328,7 @@ namespace DocuDoctor.ViewController
             float x = box.X; float y = box.Y;
             SKPaint textPaint = new SKPaint
             {
-                Color = SKColors.White,
+                Color = SKColors.Black,
                 TextSize = 24,
                 IsAntialias = true
             };
@@ -260,6 +340,9 @@ namespace DocuDoctor.ViewController
                 IsAntialias = true,
                 Style = SKPaintStyle.Fill
             };
+            if (box.BoxType == "Class") boxPaint.Color = new SKColor(236, 248, 255);
+            else if (box.BoxType == "Interface") boxPaint.Color = new SKColor(238, 255, 225);
+            else if (box.BoxType == "Template") boxPaint.Color = new SKColor(255, 216, 201);
             canvas.DrawRect(new SKRect(x, y, x + box.Width, y + box.Height), boxPaint);
             // Draw The Border
             SKPaint borderPaint = new SKPaint

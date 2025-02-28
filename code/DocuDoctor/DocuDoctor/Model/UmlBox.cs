@@ -32,6 +32,14 @@ namespace DocuDoctor.Model
         private float m_height;
         public float Height { get { return m_height; } set { m_height = value; } }
 
+        // Id will be randomized and assinged on initialize.
+        // By using a long, the chance of a collision is as close to 0 as imaginable
+        private long m_id;
+        public long ID { get { return m_id; } }
+
+        private List<(long, int)> m_arrows;
+        public List<(long, int)> Arrows { get { return m_arrows; } }
+
         public UmlBox(string type, string name, int x, int y)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: UmlBox : UmlBox                                       ::
@@ -53,9 +61,11 @@ namespace DocuDoctor.Model
         {
             m_boxType = type; m_name = name; m_variables = []; m_methods = [];
             m_x = x; m_y = y; m_width = 0; m_height = 1;
+            // Initialize a random id to show which 
+            Random rnd = new Random();
+            m_id = rnd.NextInt64();
+            m_arrows = new List<(long, int)>();
         }
-
-
 
         public void AddMethod(string protection, string returnType, string name, List<List<String>> parameters)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -81,6 +91,14 @@ namespace DocuDoctor.Model
 
         public void AddVariable(string protection, string type, string name) {
             m_variables.Add(new UmlVariable(protection, type, name));
+        }
+
+        public void AddArrow(long id, int type) {
+            // Only add id if it is new
+            foreach ((long, int) i in m_arrows) {
+                if (id == i.Item1) return;
+            }
+            m_arrows.Add((id, type));
         }
 
         public override string ToString()
