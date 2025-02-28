@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using DocuDoctor.Model;
 using SkiaSharp;
 
@@ -122,17 +123,54 @@ namespace DocuDoctor.ViewController
             return selectedBox;
         }
 
+        public void DrawArrow(SKCanvas canvas, (float, float) boxOneCoords, (float, float) boxTwoCoords, bool isDotted) {
+            SKPaint arrowPaint = new SKPaint {
+                Color = SKColors.White,
+                StrokeWidth = 3,
+                IsAntialias = true
+            };
+            SKPaint arrowPaintDotted = new SKPaint {
+                Color = SKColors.White,
+                StrokeWidth = 3,
+                IsAntialias = true,
+                PathEffect = SKPathEffect.CreateDash(new float[] { 10, 10 }, 0) // Dotted pattern (10px on, 10px off)
+            };
+            // Draw the line
+            if (isDotted) canvas.DrawLine(new SKPoint(boxOneCoords.Item1, boxOneCoords.Item2), new SKPoint(boxTwoCoords.Item1, boxTwoCoords.Item2), arrowPaintDotted);
+            else canvas.DrawLine(new SKPoint(boxOneCoords.Item1, boxOneCoords.Item2), new SKPoint(boxTwoCoords.Item1, boxTwoCoords.Item2), arrowPaint);
+            // Draw the arrowhead
+            // Calculate the direction vector as atan2 value
+            float angle = (float)Math.Atan2(boxTwoCoords.Item2-boxOneCoords.Item2, boxTwoCoords.Item1-boxOneCoords.Item1);
+            float arrowAngleOne = angle+(float)Math.PI/6;
+            float arrowAngleTwo = angle-(float)Math.PI/6;
+            float arrowheadSize = 20;
+            // Calculate arrowhead points
+            SKPoint arrowPointOne = new SKPoint(
+                boxTwoCoords.Item1 - arrowheadSize * (float)Math.Cos(arrowAngleOne),
+                boxTwoCoords.Item2 - arrowheadSize * (float)Math.Sin(arrowAngleOne)
+            );
+            SKPoint arrowPointTwo = new SKPoint(
+                boxTwoCoords.Item1 - arrowheadSize * (float)Math.Cos(arrowAngleTwo),
+                boxTwoCoords.Item2 - arrowheadSize * (float)Math.Sin(arrowAngleTwo)
+            );
+            canvas.DrawLine(arrowPointOne, new SKPoint(boxTwoCoords.Item1, boxTwoCoords.Item2), arrowPaint);
+            canvas.DrawLine(arrowPointTwo, new SKPoint(boxTwoCoords.Item1, boxTwoCoords.Item2), arrowPaint);
+        }
+
         public void RedrawAllArrows(SKCanvas canvas) {
             // Get each box into a hashmap of id, box pairs
             Dictionary<long, UmlBox> d = new Dictionary<long, UmlBox>();
             foreach (UmlBox box in m_boxes) d.Add(box.ID, box);
-            /*
             foreach (UmlBox box in m_boxes) {
-                foreach ((long i, int t) in box.Arrows) {
-                    
+                for (int j = box.Arrows.Count-1; j >= 0; j--) {
+                    long i = box.Arrows[j].Item1;
+                    int t = box.Arrows[j].Item2;
+                    if (d.TryGetValue(i, out UmlBox arrowEnd)) DrawArrow(canvas, (box.X, box.Y), (arrowEnd.X, arrowEnd.Y), t==1);
+                    // The else block being hit means the arrows end pos does not exist anymore
+                    // Therefore it should be removed from the list of arrows
+                    else box.Arrows.RemoveAt(j);
                 }
             }
-            */
         }
 
         public void RedrawAllBoxes(SKCanvas canvas)

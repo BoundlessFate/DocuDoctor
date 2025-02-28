@@ -274,9 +274,11 @@ namespace DocuDoctor.ViewController
                         break;
                     case 5:
                         m_data.AddArrow((float)mPos.X, (float)mPos.Y, 0);
+                        skCanvas.InvalidateVisual();
                         break;
                     case 6:
                         m_data.AddArrow((float)mPos.X, (float)mPos.Y, 1);
+                        skCanvas.InvalidateVisual();
                         break;
                 }
             }
