@@ -88,12 +88,14 @@ namespace DocuDoctor.ViewController {
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             Parser parser = new Parser(fileName);
+            bool updatedBoxes = false;
             foreach(UmlBox box in parser.ParseFile()) {
                 CalculateWidthHeight(box);
                 m_boxes.Add(box);
+                updatedBoxes = true;
 
             }
-            return true;
+            return updatedBoxes;
         }
 
         public void RedrawAllBoxes(SKCanvas canvas)

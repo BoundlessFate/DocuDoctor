@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Text.RegularExpressions;
-
+using System.Xml;
+using System.Xml.Serialization;
 namespace DocuDoctor.Model {
 
 
@@ -9,8 +10,9 @@ namespace DocuDoctor.Model {
     /// </summary>
     public class Parser {
 
-        private string file;
-        private string[] keywords;
+        private string m_file;
+        private string[] m_keywords;
+        private Syntax m_syntaxInfo;
 
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: Parser : Parser                                       ::
@@ -26,7 +28,15 @@ namespace DocuDoctor.Model {
         :: 8. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         public Parser(String fileName) { //comment
-            file = fileName;
+            m_file = fileName;
+            //Uri syntaxXMLPath = new Uri("..\\assets\\syntaxData.xml", UriKind.Relative);
+            //StreamResourceInfo ri = System.Windows.Application.GetResourceStream(syntaxXMLPath);
+            XmlWriter writer = XmlWriter.Create("C:\\Users\\riley\\source\\repos\\DocuDoctor\\code\\DocuDoctor\\DocuDoctor\\assets\\syntaxData.xml");
+            m_syntaxInfo = new Syntax();
+            XmlSerializer serializer = new XmlSerializer(typeof(Syntax));
+
+            serializer.Serialize(writer, m_syntaxInfo);
+            writer.Close();
         }
 
 
@@ -50,17 +60,16 @@ namespace DocuDoctor.Model {
             string fileContent = "";
             try {
 
-                //Initialize 
+                //Initialize regex commands as objects I think this is faster than static methods
                 Regex stringsAndComments = new Regex("\"[\\S\\s]*?\"|'[\\S\\s]*?'|\\/\\*[\\S\\s]*?\\*\\/|\\/\\/.*?[\\n]");
 
                 Regex whiteSpace = new Regex("[ \t\n\r]+");
-                using(StreamReader sr = new StreamReader(file)) {
+                using(StreamReader sr = new StreamReader(m_file)) {
                     while(!sr.EndOfStream) {
                         string line = sr.ReadLine();
                         fileContent += line + '\n';
                     }
                 }
-                MatchCollection temp = stringsAndComments.Matches(fileContent);
                 fileContent = stringsAndComments.Replace(fileContent, " ");
                 fileContent = whiteSpace.Replace(fileContent, " ");
             } catch(Exception ex) {
@@ -92,21 +101,30 @@ namespace DocuDoctor.Model {
             //Scans for keywords like class and private and takes everything up to the line ender
             Regex findKeywords = new Regex("(private |public |class |protected ).*?[);{]");
             MatchCollection keywordChunks = findKeywords.Matches(fileContent);
+
             List<UmlBox> result = new List<UmlBox>();
+
             foreach(Match match in keywordChunks) {
                 string chunk = match.Value;
                 if(chunk.Contains('=') || (chunk.Contains(';') && !chunk.Contains(')'))) {
                     UmlVariable temp = readVariable(chunk);
+                    //Adds the found variable to the most recent UML box in the list
+                    //should work for everthing except nested classes
                     if(temp != null && result.Count > 0 && result[result.Count - 1] != null) {
                         result[result.Count - 1].AddVariable(temp);
                     }
+
                 } else if(chunk.Contains("class ")) {
                     result.Add(readClass(chunk));
+
                 } else if(chunk.Contains('(')) {
+                    //Adds the found variable to the most recent UML box in the list
+                    //should work for everthing except nested classes
                     UmlMethod method = readMethod(chunk);
                     if(method != null && result.Count > 0 && result[result.Count - 1] != null) {
                         result[result.Count - 1].AddMethod(method);
                     }
+
                 }
             }
             return result;
@@ -115,12 +133,12 @@ namespace DocuDoctor.Model {
 
 
         private UmlVariable readVariable(string text) {
+            //TODO: change this into a something better
             UmlVariable variable = null;
             int removeIndex = Math.Max(text.IndexOf('='), text.IndexOf(';'));
             if(removeIndex > 0)
                 text = text.Remove(removeIndex);
             string[] chunks = text.Split(' ');
-            //TODO: change this into a something better
             if(chunks.Length >= 3)
                 variable = new UmlVariable(chunks[0], chunks[1], chunks[2]);
             return variable;
@@ -136,10 +154,10 @@ namespace DocuDoctor.Model {
             string[] keywords = chunk.Split(" ");
 
             UmlMethod method = null;
-            List<UmlVariable> inputParam = new List<UmlVariable>();
+            List<UmlVariable> inputParam = [];
             foreach(string param in parameters) {
                 if(param.Length > 0) {
-
+                    //Finds the point between the type and the name of the parameter
                     int splitPoint = param.LastIndexOf(" ");
                     if(splitPoint > 0) {
                         string type = param.Substring(0, splitPoint);
@@ -150,16 +168,58 @@ namespace DocuDoctor.Model {
                     }
                 }
             }
-            if(keywords.Length > 2) {
+            if(keywords.Length >= 3) {
                 method = new UmlMethod(keywords[0], keywords[1], keywords[2], inputParam);
             }
             return method;
         }
         private UmlBox readClass(string chunk) {
+            //TODO: This is all a bit of a mess and needs to be improved 
             if(chunk.Contains('{')) {
                 chunk = chunk.Remove(chunk.LastIndexOf('{')).Trim();
             }
             return new UmlBox("Class", chunk.Substring(chunk.LastIndexOf(" ")), 0, 0);
+        }
+    }
+
+    public class Syntax {
+        public string[] visibility;
+        public string[] objectKeywords;
+        public string objectEnding;
+        public string varEnding;
+        public string functionEnding;
+
+        public Syntax() {
+            visibility = ["test1", "test2"];
+            objectKeywords = new string[0];
+            objectEnding = "test";
+            varEnding = "";
+            functionEnding = "";
+        }
+
+        public string generateKeywordRegexCommand() {
+            string command = "(";
+            foreach(string item in visibility) {
+                command += item + " |";
+            }
+            foreach(string item in objectKeywords) {
+                command += item + " |";
+            }
+            command += ").*?[";
+            command += objectEnding + varEnding + functionEnding + "]";
+            return command;
+        }
+
+        public bool isObject(string text) {
+            foreach(string item in objectKeywords) {
+                if(text.Contains(item + " "))
+                    return true;
+            }
+            return false;
+        }
+
+        public bool isVar(string text) {
+            return text.Contains(varEnding);
         }
     }
 }

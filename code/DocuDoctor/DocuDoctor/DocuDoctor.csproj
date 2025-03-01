@@ -41,6 +41,7 @@
     <Resource Include="assets\maximize.png" />
     <Resource Include="assets\minimize.png" />
     <Resource Include="assets\windowed.png" />
+    <Resource Include="assets\c#Syntax.xml" />
   </ItemGroup>
 
   <ItemGroup>
