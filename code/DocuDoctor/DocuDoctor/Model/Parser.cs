@@ -186,6 +186,12 @@ namespace DocuDoctor.Model {
         }
         private UmlBox? readClass(string chunk) {
             //TODO: This is all a bit of a mess and needs to be improved 
+
+            foreach(string keyword in m_syntaxInfo.objectKeywords) {
+                if(chunk.Contains(keyword)) {
+                    chunk = chunk.Substring(chunk.IndexOf(keyword)).Trim();
+                }
+            }
             if(chunk.Contains(m_syntaxInfo.functionEnding)) {
                 chunk = chunk.Remove(chunk.LastIndexOf(m_syntaxInfo.functionEnding)).Trim();
             }
@@ -214,11 +220,11 @@ namespace DocuDoctor.Model {
                         functionEnding = ")";
                         break;
                     default:
-                        visibility = [];
-                        objectKeywords = [];
-                        objectEnding = "";
-                        varEnding = "";
-                        functionEnding = "";
+                        visibility = ["invalid"];
+                        objectKeywords = ["invalid"];
+                        objectEnding = "invalid";
+                        varEnding = "invalid";
+                        functionEnding = "invalid";
                         break;
                 }
 
