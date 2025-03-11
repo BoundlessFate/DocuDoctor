@@ -23,6 +23,10 @@ namespace DocuDoctor.ViewController
         private float m_scale;
         public float Scale { get { return m_scale; } set { m_scale = value; } }
         private float m_translationX;
+
+        private float m_dpiScale;
+        public float DpiScale { get { return m_dpiScale; } set { m_dpiScale = value; } }
+
         public float TranslationX { get { return m_translationX; } set { m_translationX = value; } }
         private float m_translationY;
         public float TranslationY { get { return m_translationY; } set { m_translationY = value; } }
@@ -81,7 +85,7 @@ namespace DocuDoctor.ViewController
         :: 9. Modifications: 1/28/25 - Added output parameter for box       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            UmlBox box = new UmlBox("Class", "NewClass", (int)pos.X, (int)pos.Y);
+            UmlBox box = new UmlBox("Class", "NewClass", (int)(pos.X * m_dpiScale), (int)(pos.Y * m_dpiScale));
             m_selectedForProperties = box;
             m_boxes.Add(box);
             CalculateWidthHeight(box);
@@ -127,13 +131,15 @@ namespace DocuDoctor.ViewController
             // If you are already moving a box, keep moving that one
             // Find the box you are trying to move based on the x y coordinates
             UmlBox selectedBox = m_movedBox;
+            x *= m_dpiScale;
+            y *= m_dpiScale; 
             if (selectedBox == null)
             {
                 // Search backwards, so you move the topmost box (since topmost is inherently drawn last aka on top)
                 for (int i=m_boxes.Count-1; i>=0; i--)
                 {
                     UmlBox b = m_boxes[i];
-                    if (b.X <= x && x < b.X + b.Width && b.Y <= y && y < b.Y + b.Height) {
+                    if (b.X <= x  && x  < b.X + b.Width && b.Y <= y  && y  < b.Y + b.Height) {
                         selectedBox = b;
                         // Move the current box to the end of the boxlist so its drawn on top
                         m_boxes.RemoveAt(i); m_boxes.Add(b);
@@ -142,7 +148,7 @@ namespace DocuDoctor.ViewController
                 }
             }
             if (selectedBox == null) return false;
-            selectedBox.X += (float)1.5*deltaX; selectedBox.Y += (float)1.5* deltaY;
+            selectedBox.X += (float)m_dpiScale*deltaX; selectedBox.Y += (float)m_dpiScale* deltaY;
             m_movedBox = selectedBox;
             SelectedForProperties = selectedBox;
             return true;
@@ -164,7 +170,8 @@ namespace DocuDoctor.ViewController
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            float x = mPos.X; float y = mPos.Y;
+            float x = mPos.X * m_dpiScale; 
+            float y = mPos.Y * m_dpiScale;
             // Search backwards, so you move the topmost box (since topmost is inherently drawn last aka on top)
             for (int i = m_boxes.Count - 1; i >= 0; i--)
             {
