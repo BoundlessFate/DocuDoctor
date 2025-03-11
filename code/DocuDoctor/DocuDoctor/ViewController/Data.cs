@@ -352,6 +352,11 @@ namespace DocuDoctor.ViewController
                 Style = SKPaintStyle.Stroke,
                 StrokeWidth = 2
             };
+            // Highlight box if seleted
+            if (SelectedForProperties != null && box == SelectedForProperties) {
+                borderPaint.Color = SKColors.Yellow;
+                borderPaint.StrokeWidth = 5;
+            }
             canvas.DrawRect(x, y, box.Width, box.Height, borderPaint);
             // Clip the canvas
             canvas.Save();
