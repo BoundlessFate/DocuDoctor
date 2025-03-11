@@ -29,8 +29,11 @@ namespace DocuDoctor.ViewController
     /// </summary>
     public partial class MainWindow : Window
     {
+        // Data object for MVP structure
         private Data m_data;
+        // Whether the mouse is being clicked
         private bool m_clicked;
+        // Variables used for canvas movement and scaling and object manipulation
         private SKPoint m_lastMousePos;
         private SKPoint m_initialMousePos;
         private float m_initialTransformX;
@@ -48,15 +51,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: MainWindow : MainWindow                               ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 9/28/2024                                            ::
-        :: 4. Purpose: Creator                                              ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: None                                        ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Creator                                              ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             InitializeComponent();
@@ -65,7 +60,14 @@ namespace DocuDoctor.ViewController
             BindElements();
         }
 
-        private void BindElements() {
+        private void BindElements()
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: BindElements : MainWindow                             ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Binds tables to grids for easier table manip         ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
             PropertyGrid.ItemsSource = m_data.PropertyTable.DefaultView;
             MethodGrid.ItemsSource = m_data.MethodTable.DefaultView;
             ParameterGrid.ItemsSource = m_data.ParameterTable.DefaultView;
@@ -76,15 +78,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: AddEvents : MainWindow                                ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: Attaches events on initialization                    ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: None                                        ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Attaches events on initialization                    ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             skCanvas.MouseDown += SkCanvas_MouseDown;
@@ -100,16 +94,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: Screen_KeyDown : MainWindow                           ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: handles events when you click keys in window         ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: sender - object that called this            ::
-        ::                          e - input arguments for the key press   ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: handles events when you click keys in window         ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             if (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl) m_ctrlClicked = true;
@@ -120,16 +105,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: Screen_KeyUp : MainWindow                             ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: handles events when you release keys in window       ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: sender - object that called this            ::
-        ::                          e - input arguments for the key press   ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: handles events when you release keys in window       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             if (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl) m_ctrlClicked = false;
@@ -140,16 +116,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: SkCanvas_MouseWheel : MainWindow                      ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: handles events when you when you scroll in window    ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: sender - object that called this            ::
-        ::                          e - input arguments for the scroll      ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: handles events when you when you scroll in window    ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             float scaleFactor = 1.25f;
@@ -178,16 +145,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: SkCanvas_MouseUp : MainWindow                         ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: handles events when you release mouse in skcanvas    ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: sender - object that called this            ::
-        ::                          e - input arguments for the release     ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: handles events when you release mouse in skcanvas    ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             m_data.MovedBox = null;
@@ -199,16 +157,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: SkCanvas_MouseMove : MainWindow                       ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: handles events when you move mouse in skcanvas       ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: sender - object that called this            ::
-        ::                          e - input argument for mouse move       ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: handles events when you move mouse in skcanvas       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             if (!m_clicked || m_data.toolbarSelection != 0) return;
@@ -234,16 +183,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: SkCanvas_MouseDown : MainWindow                       ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: handles events when you click mouse in skcanvas      ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: sender - object that called this            ::
-        ::                          e - input arguments for the click       ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: handles events when you click mouse in skcanvas      ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             System.Windows.Point mPos = e.GetPosition(skCanvas); 
@@ -293,15 +233,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: UpdateProperties : MainWindow                         ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/23/2025                                            ::
-        :: 4. Purpose: Update properties panel with currently selected box  ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: None                                        ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Update properties panel with currently selected box  ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             UmlBox cur = m_data.SelectedForProperties;
@@ -324,15 +256,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: OnStartup : MainWindow                                ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 9/28/2024                                            ::
-        :: 4. Purpose: Actions to occur on startup of main window           ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: None                                        ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Actions to occur on startup of main window           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             m_data = new Data();
@@ -345,7 +269,14 @@ namespace DocuDoctor.ViewController
             InitResourceMonitors();
         }
 
-        private void InitResourceMonitors() {
+        private void InitResourceMonitors()
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: InitResourceMonitors : MainWindow                     ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Creates the resource monitors in status bar          ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
             cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
             ramCounter = new PerformanceCounter("Memory", "Available MBytes");
             totalRam = GetTotalMemoryInBytes()/1000000;
@@ -358,6 +289,12 @@ namespace DocuDoctor.ViewController
         }
 
         private void UpdateResourceUsage(object sender, EventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: UpdateResourceUsage : MainWindow                      ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Updates resource monitors every few seconds          ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             float cpuUsage = cpuCounter.NextValue();
             float ramAvailable = ramCounter.NextValue();
@@ -370,11 +307,24 @@ namespace DocuDoctor.ViewController
         }
 
         static ulong GetTotalMemoryInBytes()
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: GetTotalMemoryInBytes : MainWindow                    ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Helper function for estimating current ram usage     ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             return new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory;
         }
 
-        private void ResetProperties() {
+        private void ResetProperties()
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: ResetProperties : MainWindow                          ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Resets the various property windows to default       ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
             boxName.Text = "";
             m_data.PropertyTable.Columns.Clear();
             m_data.PropertyTable.Rows.Clear();
@@ -405,6 +355,12 @@ namespace DocuDoctor.ViewController
         }
 
         private void Name_SyncChanges(object sender, TextChangedEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: Name_SyncChanges : MainWindow                         ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Syncs name bar and actual name of box                ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             if (m_data.SelectedForProperties == null) return;
             m_data.SelectedForProperties.Name = boxName.Text;
@@ -413,11 +369,24 @@ namespace DocuDoctor.ViewController
         }
 
         private void PropertyTable_SyncChanges(object sender, DataTableNewRowEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: PropertyTable_SyncChanges : MainWindow                ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Alternative call for syncing propery table           ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             PropertyTable_SyncChanges(sender, new DataRowChangeEventArgs(null, new DataRowAction()));
         }
 
-        private void PropertyTable_SyncChanges(object sender, DataRowChangeEventArgs e) {
+        private void PropertyTable_SyncChanges(object sender, DataRowChangeEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: PropertyTable_SyncChanges : MainWindow                ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Syncs property table to backend                      ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
             if (m_data.SelectedForProperties == null) {
                 // Add a new box if nothing is selected when you start writing
                 UmlBox b = m_data.AddBox(new SKPoint(0, 0));
@@ -465,6 +434,12 @@ namespace DocuDoctor.ViewController
         }
 
         private void MethodTable_ChangeSelected(object sender, SelectedCellsChangedEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: MethodTable_ChangeSelected : MainWindow               ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Wipes parameter table                                ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             // Lock monitoring of parameter table until this method finishes
             m_data.methodSwitchDone = false;
@@ -485,11 +460,23 @@ namespace DocuDoctor.ViewController
         }
 
         private void MethodTable_SyncChanges(object sender, DataTableNewRowEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: MethodTable_ChangeSelected : MainWindow               ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Syncs method table to backend                        ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             MethodTable_SyncChanges(sender, new DataRowChangeEventArgs(null, new DataRowAction()));
         }
 
         private void MethodTable_SyncChanges(object sender, DataRowChangeEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: MethodTable_ChangeSelected : MainWindow               ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Syncs method table to backend                        ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             if (m_data.SelectedForProperties == null)
             {
@@ -604,11 +591,23 @@ namespace DocuDoctor.ViewController
         }
 
         private void ParameterTable_SyncChanges(object sender, DataTableNewRowEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: ParameterTable_ChangeSelected : MainWindow            ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Syncs parameter table to backend                     ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             ParameterTable_SyncChanges(sender, new DataRowChangeEventArgs(null, new DataRowAction()));
         }
 
         private void ParameterTable_SyncChanges(object sender, DataRowChangeEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: ParameterTable_ChangeSelected : MainWindow            ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Syncs parameter table to backend                     ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             // Events for switching methods and the syncing of changes can happen simulatenously, causing some issues...
             // Wait until the switch is 100% complete before starting to monitor changes in parameter table
@@ -673,16 +672,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: buttonMinimize_Click : MainWindow                     ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 9/28/2024                                            ::
-        :: 4. Purpose: Action for the minimize button                       ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: sender - object sending the action          ::
-        ::                      e - routed event arguments                  ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Action for the minimize button                       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             this.WindowState = WindowState.Minimized;
@@ -693,16 +683,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: buttonMaximize_Click : MainWindow                     ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 9/28/2024                                            ::
-        :: 4. Purpose: Action for the maximize button                       ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: sender - object sending the action          ::
-        ::                      e - routed event arguments                  ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Action for the maximize button                       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             if (this.WindowState == WindowState.Maximized) {
@@ -719,22 +700,20 @@ namespace DocuDoctor.ViewController
         :: 1. Method: buttonClose_Click : MainWindow                        ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 9/28/2024                                            ::
-        :: 4. Purpose: Action for the close button                          ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: sender - object sending the action          ::
-        ::                      e - routed event arguments                  ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Action for the close button                          ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             this.Close();
         }
 
-        private void ClearAllToolbarButtons() {
+        private void ClearAllToolbarButtons()
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: ClearAllToolbarButtons : MainWindow                   ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Makes background for buttons transparent             ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
             Deselect.Background = new SolidColorBrush(Colors.Transparent);
             Delete.Background = new SolidColorBrush(Colors.Transparent);
             AddClass.Background = new SolidColorBrush(Colors.Transparent);
@@ -745,6 +724,12 @@ namespace DocuDoctor.ViewController
         }
 
         private void buttonDeselect_Click(object sender, RoutedEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: buttonDeselect_Click : MainWindow                     ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: When you click deselect                              ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             ClearAllToolbarButtons();
             Deselect.Background = new SolidColorBrush(Colors.Yellow);
@@ -752,6 +737,12 @@ namespace DocuDoctor.ViewController
         }
 
         private void buttonDelete_Click(object sender, RoutedEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: buttonDelete_Click : MainWindow                     ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: When you click delete                              ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             ClearAllToolbarButtons();
             Delete.Background = new SolidColorBrush(Colors.Yellow);
@@ -759,6 +750,12 @@ namespace DocuDoctor.ViewController
         }
 
         private void buttonAddClass_Click(object sender, RoutedEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: buttonAddClass_Click : MainWindow                     ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: When you click add class                             ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             ClearAllToolbarButtons();
             AddClass.Background = new SolidColorBrush(Colors.Yellow);
@@ -766,6 +763,12 @@ namespace DocuDoctor.ViewController
         }
 
         private void buttonAddInterface_Click(object sender, RoutedEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: buttonAddInterface_Click : MainWindow                 ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: When you click add interface                         ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             ClearAllToolbarButtons();
             AddInterface.Background = new SolidColorBrush(Colors.Yellow);
@@ -773,6 +776,12 @@ namespace DocuDoctor.ViewController
         }
 
         private void buttonAddTemplate_Click(object sender, RoutedEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: buttonAddTemplate_Click : MainWindow                  ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: When you click add template                          ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             ClearAllToolbarButtons();
             AddTemplate.Background = new SolidColorBrush(Colors.Yellow);
@@ -780,6 +789,12 @@ namespace DocuDoctor.ViewController
         }
 
         private void buttonAddArrow_Click(object sender, RoutedEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: buttonAddArrow_Click : MainWindow                     ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: When you click add solid arrow                       ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             ClearAllToolbarButtons();
             AddArrow.Background = new SolidColorBrush(Colors.Yellow);
@@ -787,6 +802,12 @@ namespace DocuDoctor.ViewController
         }
 
         private void buttonAddDottedArrow_Click(object sender, RoutedEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: buttonAddDottedArrow_Click : MainWindow               ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: When you click add dotted arrow                      ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             ClearAllToolbarButtons();
             AddDottedArrow.Background = new SolidColorBrush(Colors.Yellow);
@@ -798,18 +819,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: Window_MouseLeftButtonDown : MainWindow               ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 9/28/2024                                            ::
-        :: 4. Purpose: Action for when left clicking on anywhere in window  ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: sender - object sending the action          ::
-        ::                      e - mouse button  event arguments           ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications:                                                ::
-        :: DD10: Windowing top bar through dragging changes windowed button ::
-        :: DD11: Mutiscreen support                                         ::
+        :: 3. Purpose: Action for when left clicking on anywhere in window  ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             if (e.GetPosition(this).Y < 40) {
@@ -836,16 +846,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: OnPaintSurface : MainWindow                           ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: Redraw the center canvas                             ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: sender - object sending the action          ::
-        ::                      e - arguments for painting surface          ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Redraw the center canvas                             ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             e.Surface.Canvas.Clear();

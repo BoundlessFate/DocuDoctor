@@ -12,17 +12,22 @@ namespace DocuDoctor.Model
     /// </summary>
     public class UmlBox
     {
+        // Type of box (class, template, interface)
         private string m_boxType;
         public string BoxType { get { return m_boxType; } set { m_boxType = value; } }
 
+        // Current name of the box
         private string m_name;
         public string Name { get { return m_name; } set { m_name = value; } }
 
+        // List of variables that the container type contains
         private List<UmlVariable> m_variables;
         public List<UmlVariable> Variables { get { return m_variables; } }
+        // List of methods that the container type contains
         private List<UmlMethod> m_methods;
         public List<UmlMethod> Methods { get { return m_methods; } }
 
+        // variables used and stored for display on refresh of screen
         private float m_x;
         public float X { get { return m_x; } set { m_x = value; } }
         private float m_y;
@@ -45,18 +50,7 @@ namespace DocuDoctor.Model
         :: 1. Method: UmlBox : UmlBox                                       ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: Initializer for UML Boxes                            ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: type - type of box                          ::
-        ::                      name - name of the box                      ::
-        ::                         x - x coordinate of the box              ::
-        ::                         y - y coordinate of the box              ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Initializer for UML Boxes                            ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             m_boxType = type; m_name = name; m_variables = []; m_methods = [];
@@ -72,28 +66,31 @@ namespace DocuDoctor.Model
         :: 1. Method: AddMethod : UmlBox                                    ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: Add method to the current box                        ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: protection - protection level of the method ::
-        ::                      returnType - return type of the method      ::
-        ::                            name - name of the method             ::
-        ::                      parameters - parameters of the method       ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Add method to the current box                        ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             m_methods.Add(new UmlMethod(protection, returnType, name, parameters));
         }
 
-        public void AddVariable(string protection, string type, string name) {
+        public void AddVariable(string protection, string type, string name)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: AddVariable : UmlBox                                  ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Add variable to the current box                      ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
             m_variables.Add(new UmlVariable(protection, type, name));
         }
 
-        public void AddArrow(long id, int type) {
+        public void AddArrow(long id, int type)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: AddArrow : UmlBox                                     ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Add arrow to the current box                         ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
             // Only add id if it is new
             foreach ((long, int) i in m_arrows) {
                 if (id == i.Item1) return;
@@ -106,15 +103,7 @@ namespace DocuDoctor.Model
         :: 1. Method: ToString : UmlBox                                     ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: Overrides ToString allowing for easier display       ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: None                                        ::
-        :: 6. Output Parameters: string containing data about box           ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Overrides ToString allowing for easier display       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             return m_boxType + " : " + m_name;

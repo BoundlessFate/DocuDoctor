@@ -15,32 +15,35 @@ namespace DocuDoctor.ViewController
     /// </summary>
     internal class Data
     {
+        // Main list where uml boxes are stored in
         protected List<UmlBox> m_boxes;
         public List<UmlBox> Boxes { get { return m_boxes; } }
 
+        // The box being currently moved (used when you click and drag a box)
         private UmlBox m_movedBox;
         public UmlBox MovedBox { get { return m_movedBox; } set { m_movedBox = value; } }
 
+        // Current scale of the SKCanvas area
         private float m_scale;
         public float Scale { get { return m_scale; } set { m_scale = value; } }
+        // Current translation from 0,0 of the SKCanvas area
         private float m_translationX;
         public float TranslationX { get { return m_translationX; } set { m_translationX = value; } }
         private float m_translationY;
         public float TranslationY { get { return m_translationY; } set { m_translationY = value; } }
-
+        // Current box being displayed on the propreties pages
         private UmlBox m_selectedForProperties;
-        public UmlBox SelectedForProperties { get { return m_selectedForProperties; } set { 
-                m_selectedForProperties = value; } }
-
+        public UmlBox SelectedForProperties { get { return m_selectedForProperties; } set { m_selectedForProperties = value; } }
+        // DataTables that are bound to the property tables, allows for easier manipulation into the property pages
         private DataTable m_propertyTable;
         public DataTable PropertyTable { get { return m_propertyTable; } set { m_propertyTable = value; } }
         private DataTable m_methodTable;
         public DataTable MethodTable { get { return m_methodTable; } set { m_methodTable = value; } }
         private DataTable m_parameterTable;
         public DataTable ParameterTable { get { return m_parameterTable; } set { m_parameterTable = value; } }
-
+        // Avoids issues with property pages being updated simulatenously
         public bool methodSwitchDone;
-
+        // Current button selected on toolbar, kept as an id 0-x
         public int toolbarSelection;
 
         public Data()
@@ -48,21 +51,14 @@ namespace DocuDoctor.ViewController
         :: 1. Method: Data : Data                                           ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: Initializer for backend data handling                ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: None                                        ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Initializer for backend data handling                ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             m_boxes = new List<UmlBox>();
             m_movedBox = null;
             m_selectedForProperties = null;
-            m_scale = (float)Screen.PrimaryScreen.Bounds.Width/1920; m_translationX = 0; m_translationY = 0;
+            m_scale = (float)Screen.PrimaryScreen.Bounds.Width/1920; 
+            m_translationX = 0; m_translationY = 0;
             m_propertyTable = new DataTable();
             m_methodTable = new DataTable();
             m_parameterTable = new DataTable();
@@ -75,15 +71,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: AddBox : Data                                         ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: Adds a new box at the point specified                ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: pos - position defining the box             ::
-        :: 6. Output Parameters: box - box that was just created            ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: 1/28/25 - Added output parameter for box       ::
+        :: 3. Purpose: Adds a new box at the point specified                ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             UmlBox box = new UmlBox("Class", "NewClass", (int)pos.X, (int)pos.Y);
@@ -93,7 +81,14 @@ namespace DocuDoctor.ViewController
             return box;
         }
 
-        public UmlBox AddBox(SKPoint pos, string type) {
+        public UmlBox AddBox(SKPoint pos, string type)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: AddBox : Data                                         ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Adds a new box at the point specified, with the type ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
             UmlBox box = new UmlBox(type, "NewClass", (int)pos.X, (int)pos.Y);
             m_selectedForProperties = box;
             m_boxes.Add(box);
@@ -101,7 +96,14 @@ namespace DocuDoctor.ViewController
             return box;
         }
 
-        public UmlBox? FindBoxAtCoords(float x, float y) {
+        public UmlBox? FindBoxAtCoords(float x, float y)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: FindBoxAtCoords : Data                                ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Searches through boxes and finds the one at (x,y)    ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
             // If you are already moving a box, keep moving that one
             // Find the box you are trying to move based on the x y coordinates
             UmlBox selectedBox = m_movedBox;
@@ -123,7 +125,14 @@ namespace DocuDoctor.ViewController
             return selectedBox;
         }
 
-        public void DrawArrow(SKCanvas canvas, (float, float) boxOneCoords, (float, float) boxTwoCoords, bool isDotted) {
+        public void DrawArrow(SKCanvas canvas, (float, float) boxOneCoords, (float, float) boxTwoCoords, bool isDotted)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: DrawArrow : Data                                      ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Draws an arrow between two points                    ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
             SKPaint arrowPaint = new SKPaint {
                 Color = SKColors.White,
                 StrokeWidth = 3,
@@ -157,7 +166,14 @@ namespace DocuDoctor.ViewController
             canvas.DrawLine(arrowPointTwo, new SKPoint(boxTwoCoords.Item1, boxTwoCoords.Item2), arrowPaint);
         }
 
-        public void RedrawAllArrows(SKCanvas canvas) {
+        public void RedrawAllArrows(SKCanvas canvas)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: RedrawAllArrows : Data                                ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Draws all arrows to the screen                       ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
             // Get each box into a hashmap of id, box pairs
             Dictionary<long, UmlBox> d = new Dictionary<long, UmlBox>();
             foreach (UmlBox box in m_boxes) d.Add(box.ID, box);
@@ -178,15 +194,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: RedrawAllBoxes : Data                                 ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: Refreshes screen by redrawing all boxes              ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: canvas - canvas object of the main area     ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Refreshes screen by redrawing all boxes              ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             foreach (UmlBox b in m_boxes) DisplayBox(b, canvas);
@@ -208,16 +216,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: MoveBox : Data                                        ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: Moves box at given x and y by deltaX and deltaY      ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: x,y - position defining the original pos    ::
-        ::            deltaX,deltaY - change in x and y                     ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Moves box at given x and y by deltaX and deltaY      ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             UmlBox? selectedBox = FindBoxAtCoords(x, y);
@@ -233,15 +232,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: RemoveBox : Data                                      ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: removes a box from the screen at defined point       ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: pos - position defining the box             ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: removes a box from the screen at defined point       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             float x = mPos.X; float y = mPos.Y;
@@ -264,16 +255,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: CalculateWidthHeight : Data                           ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: Given a box, set its width and height properties     ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: pos - position defining the box             ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications:                                                ::
-        :: Added a line between variables and methods                       ::
+        :: 3. Purpose: Given a box, set its width and height properties     ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             SKPaint textPaint = new SKPaint
@@ -311,17 +293,7 @@ namespace DocuDoctor.ViewController
         :: 1. Method: DisplayBox : Data                                     ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: Draws background, and text for a given box           ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: box - box in question being drawn           ::
-        ::                   canvas - canvas to be drawn on                 ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications:                                                ::
-        :: Added a line between variables and methods                       ::
+        :: 3. Purpose: Draws background, and text for a given box           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             // Create variables to store the x and y (may improve lookup times EVER so slightly not fully sure)
