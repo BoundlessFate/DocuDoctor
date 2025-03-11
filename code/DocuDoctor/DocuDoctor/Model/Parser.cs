@@ -1,7 +1,5 @@
 ﻿using System.IO;
 using System.Text.RegularExpressions;
-using System.Xml;
-using System.Xml.Serialization;
 namespace DocuDoctor.Model {
 
 
@@ -29,14 +27,7 @@ namespace DocuDoctor.Model {
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         public Parser(String fileName) { //comment
             m_file = fileName;
-            //Uri syntaxXMLPath = new Uri("..\\assets\\syntaxData.xml", UriKind.Relative);
-            //StreamResourceInfo ri = System.Windows.Application.GetResourceStream(syntaxXMLPath);
-            XmlWriter writer = XmlWriter.Create("C:\\Users\\riley\\source\\repos\\DocuDoctor\\code\\DocuDoctor\\DocuDoctor\\assets\\syntaxData.xml");
-            m_syntaxInfo = new Syntax();
-            XmlSerializer serializer = new XmlSerializer(typeof(Syntax));
-
-            serializer.Serialize(writer, m_syntaxInfo);
-            writer.Close();
+            m_syntaxInfo = new Syntax(fileLangagueParser(fileName));
         }
 
 
@@ -81,9 +72,27 @@ namespace DocuDoctor.Model {
             return fileContent;
         }
 
+        private Langague fileLangagueParser(string filePath) {
+            try {
+                int test = filePath.LastIndexOf('.');
+                string ending = filePath.Substring(filePath.LastIndexOf('.'));
+                switch(ending) {
+                    case ".cs":
+                        return Langague.Csharp;
+                    default:
+                        return Langague.Invalid;
+                }
+                return Langague.Csharp;
+            } catch(Exception ex) {
+                if(ex is ArgumentOutOfRangeException)
+                    return Langague.Invalid;
+                else
+                    throw;
+            }
+        }
 
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        :: 1. Method: Parser : ParseFile                                       ::
+        :: 1. Method: Parser : ParseFile                                    ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Riley Horling                                         ::
         :: 3. Created: 2/10/2025                                            ::
@@ -95,32 +104,34 @@ namespace DocuDoctor.Model {
         :: ---------------------------------------------------------------- ::
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-
         public List<UmlBox> ParseFile() {
             string fileContent = readFile();
             //Scans for keywords like class and private and takes everything up to the line ender
-            Regex findKeywords = new Regex("(private |public |class |protected ).*?[);{]");
+            Regex findKeywords = new Regex(m_syntaxInfo.generateKeywordRegexCommand());//new Regex("(private |public |class |protected ).*?[);{]");
             MatchCollection keywordChunks = findKeywords.Matches(fileContent);
 
             List<UmlBox> result = new List<UmlBox>();
 
             foreach(Match match in keywordChunks) {
+                //Assumes that the first thing in the list of matchs is a class as otherwise its real difficult to
+                // associate a method/var with a class
                 string chunk = match.Value;
                 if(chunk.Contains('=') || (chunk.Contains(';') && !chunk.Contains(')'))) {
-                    UmlVariable temp = readVariable(chunk);
+                    UmlVariable? temp = readVariable(chunk);
                     //Adds the found variable to the most recent UML box in the list
                     //should work for everthing except nested classes
                     if(temp != null && result.Count > 0 && result[result.Count - 1] != null) {
                         result[result.Count - 1].AddVariable(temp);
                     }
 
-                } else if(chunk.Contains("class ")) {
-                    result.Add(readClass(chunk));
-
-                } else if(chunk.Contains('(')) {
+                } else if(m_syntaxInfo.isObject(chunk)) {
+                    UmlBox? classBox = readClass(chunk);
+                    if(classBox != null)
+                        result.Add(classBox);
+                } else if(m_syntaxInfo.isFunction(chunk)) {
                     //Adds the found variable to the most recent UML box in the list
                     //should work for everthing except nested classes
-                    UmlMethod method = readMethod(chunk);
+                    UmlMethod? method = readMethod(chunk);
                     if(method != null && result.Count > 0 && result[result.Count - 1] != null) {
                         result[result.Count - 1].AddMethod(method);
                     }
@@ -132,19 +143,18 @@ namespace DocuDoctor.Model {
 
 
 
-        private UmlVariable readVariable(string text) {
+        private UmlVariable? readVariable(string text) {
             //TODO: change this into a something better
-            UmlVariable variable = null;
             int removeIndex = Math.Max(text.IndexOf('='), text.IndexOf(';'));
             if(removeIndex > 0)
                 text = text.Remove(removeIndex);
             string[] chunks = text.Split(' ');
             if(chunks.Length >= 3)
-                variable = new UmlVariable(chunks[0], chunks[1], chunks[2]);
-            return variable;
+                return new UmlVariable(chunks[0], chunks[1], chunks[2]);
+            return null;
         }
 
-        private UmlMethod readMethod(string chunk) {
+        private UmlMethod? readMethod(string chunk) {
             // Seperate all the parameters for the method (assumes we use , for seperation)
             string[] parameters = Regex.Match(chunk, "(?<=\\().*?(?=\\))").Value.Split(",");
 
@@ -157,7 +167,8 @@ namespace DocuDoctor.Model {
             List<UmlVariable> inputParam = [];
             foreach(string param in parameters) {
                 if(param.Length > 0) {
-                    //Finds the point between the type and the name of the parameter
+                    //Finds the point between the type and the name of the parameter, alaways assuming that space is
+                    // a delimenatar(god I can't spell)
                     int splitPoint = param.LastIndexOf(" ");
                     if(splitPoint > 0) {
                         string type = param.Substring(0, splitPoint);
@@ -173,53 +184,98 @@ namespace DocuDoctor.Model {
             }
             return method;
         }
-        private UmlBox readClass(string chunk) {
+        private UmlBox? readClass(string chunk) {
             //TODO: This is all a bit of a mess and needs to be improved 
-            if(chunk.Contains('{')) {
-                chunk = chunk.Remove(chunk.LastIndexOf('{')).Trim();
+            if(chunk.Contains(m_syntaxInfo.functionEnding)) {
+                chunk = chunk.Remove(chunk.LastIndexOf(m_syntaxInfo.functionEnding)).Trim();
             }
-            return new UmlBox("Class", chunk.Substring(chunk.LastIndexOf(" ")), 0, 0);
-        }
-    }
-
-    public class Syntax {
-        public string[] visibility;
-        public string[] objectKeywords;
-        public string objectEnding;
-        public string varEnding;
-        public string functionEnding;
-
-        public Syntax() {
-            visibility = ["test1", "test2"];
-            objectKeywords = new string[0];
-            objectEnding = "test";
-            varEnding = "";
-            functionEnding = "";
+            string[] keywords = chunk.Split(" ");
+            if(keywords.Length >= 2)
+                return new UmlBox(keywords[0], keywords[1], 0, 0);
+            return null;
         }
 
-        public string generateKeywordRegexCommand() {
-            string command = "(";
-            foreach(string item in visibility) {
-                command += item + " |";
+        public class Syntax {
+            public string[] visibility;
+            public string[] objectKeywords;
+            public string objectEnding;
+            public string varEnding;
+            public string functionEnding;
+            //Should store Comment/string info
+
+            public Syntax(Langague langague) {
+                //This is a real ugly
+                switch(langague) {
+                    case Langague.Csharp:
+                        visibility = ["private", "public", "protected"];
+                        objectKeywords = ["class"];
+                        objectEnding = "{";
+                        varEnding = ";";
+                        functionEnding = ")";
+                        break;
+                    default:
+                        visibility = [];
+                        objectKeywords = [];
+                        objectEnding = "";
+                        varEnding = "";
+                        functionEnding = "";
+                        break;
+                }
+
             }
-            foreach(string item in objectKeywords) {
-                command += item + " |";
+
+            /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+            :: 1. Method: Parser : ParseFile                                    ::
+            :: ---------------------------------------------------------------- ::
+            :: 2. Author: Riley Horling                                         ::
+            :: 3. Created: 2/10/2025                                            ::
+            :: 4. Purpose: Creates a custom regex command to parse the file     ::
+            :: ---------------------------------------------------------------- ::
+            :: 6. Output Parameters: regex command                              ::
+            :: 7. Preconditions: None                                           ::
+            :: 8. Throws: None                                                  ::
+            :: ---------------------------------------------------------------- ::
+            :: 9. Modifications: None                                           ::
+            ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+            public string generateKeywordRegexCommand() {
+                //Example command for C#: (private |public |class |protected ).*?[);{]
+                string command = "(";
+
+
+                foreach(string item in visibility) {
+                    command += item + " |";
+                }
+                foreach(string item in objectKeywords) {
+                    command += item + " |";
+                }
+                //Lazy solution
+                if(command.EndsWith('|'))
+                    command = command.Substring(0, command.Length - 1);
+
+                command += ").*?[";
+                command += objectEnding + varEnding + functionEnding + "]";
+                return command;
             }
-            command += ").*?[";
-            command += objectEnding + varEnding + functionEnding + "]";
-            return command;
+
+            public bool isObject(string text) {
+                foreach(string item in objectKeywords) {
+                    if(text.Contains(item + " "))
+                        return true;
+                }
+                return false;
+            }
+
+            public bool isFunction(string text) {
+                return text.Contains(functionEnding);
+            }
+
+            public bool isVar(string text) {
+                return text.Contains(varEnding);
+            }
         }
 
-        public bool isObject(string text) {
-            foreach(string item in objectKeywords) {
-                if(text.Contains(item + " "))
-                    return true;
-            }
-            return false;
-        }
-
-        public bool isVar(string text) {
-            return text.Contains(varEnding);
+        public enum Langague {
+            Csharp, Invalid
         }
     }
 }
