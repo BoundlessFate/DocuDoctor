@@ -23,15 +23,14 @@ namespace DocuDoctor.ViewController
         private UmlBox m_movedBox;
         public UmlBox MovedBox { get { return m_movedBox; } set { m_movedBox = value; } }
 
+        private float m_dpiScale;
+        public float DpiScale { get { return m_dpiScale; } set { m_dpiScale = value; } }
+
         // Current scale of the SKCanvas area
         private float m_scale;
         public float Scale { get { return m_scale; } set { m_scale = value; } }
         // Current translation from 0,0 of the SKCanvas area
         private float m_translationX;
-
-        private float m_dpiScale;
-        public float DpiScale { get { return m_dpiScale; } set { m_dpiScale = value; } }
-
         public float TranslationX { get { return m_translationX; } set { m_translationX = value; } }
         private float m_translationY;
         public float TranslationY { get { return m_translationY; } set { m_translationY = value; } }
@@ -78,7 +77,7 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: Adds a new box at the point specified                ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            UmlBox box = new UmlBox("Class", "NewClass", (int)(pos.X * m_dpiScale), (int)(pos.Y * m_dpiScale));
+            UmlBox box = new UmlBox("Class", "NewClass", (int)pos.X* (int)m_dpiScale, (int)pos.Y);
             m_selectedForProperties = box;
             m_boxes.Add(box);
             CalculateWidthHeight(box);
@@ -93,7 +92,7 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: Adds a new box at the point specified, with the type ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            UmlBox box = new UmlBox(type, "NewClass", (int)pos.X, (int)pos.Y);
+            UmlBox box = new UmlBox(type, "NewClass", (int)(pos.X * m_dpiScale), (int)(pos.Y * m_dpiScale));
             m_selectedForProperties = box;
             m_boxes.Add(box);
             CalculateWidthHeight(box);
@@ -112,7 +111,7 @@ namespace DocuDoctor.ViewController
             // Find the box you are trying to move based on the x y coordinates
             UmlBox selectedBox = m_movedBox;
             x *= m_dpiScale;
-            y *= m_dpiScale; 
+            y*= m_dpiScale;
             if (selectedBox == null)
             {
                 // Search backwards, so you move the topmost box (since topmost is inherently drawn last aka on top)
@@ -241,8 +240,7 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: removes a box from the screen at defined point       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            float x = mPos.X * m_dpiScale; 
-            float y = mPos.Y * m_dpiScale;
+            float x = mPos.X; float y = mPos.Y;
             // Search backwards, so you move the topmost box (since topmost is inherently drawn last aka on top)
             for (int i = m_boxes.Count - 1; i >= 0; i--)
             {
