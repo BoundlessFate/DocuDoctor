@@ -96,25 +96,25 @@
                     Grid.Column="1"
                     >
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
-                        <Button x:Name="Deselect" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonDeselect_Click">
+                        <Button x:Name="Deselect" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonDeselect_Click" ToolTipService.ToolTip="Deselect">
                             <Image Source="../assets/Deselect.png" Width="20" Height="35" />
                         </Button>
-                        <Button x:Name="Delete" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonDelete_Click">
+                        <Button x:Name="Delete" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonDelete_Click" ToolTipService.ToolTip="Delete">
                             <Image Source="../assets/EraseItem.png" Width="20" Height="35" />
                         </Button>
-                        <Button x:Name="AddClass" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddClass_Click">
+                        <Button x:Name="AddClass" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddClass_Click" ToolTipService.ToolTip="Class">
                             <Image Source="../assets/AddClass.png" Width="20" Height="35" />
                         </Button>
-                        <Button x:Name="AddInterface" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddInterface_Click">
+                        <Button x:Name="AddInterface" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddInterface_Click" ToolTipService.ToolTip="Interface">
                             <Image Source="../assets/AddInterface.png" Width="20" Height="35" />
                         </Button>
-                        <Button x:Name="AddTemplate" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddTemplate_Click">
+                        <Button x:Name="AddTemplate" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddTemplate_Click" ToolTipService.ToolTip="Template">
                             <Image Source="../assets/AddTemplate.png" Width="20" Height="35" />
                         </Button>
-                        <Button x:Name="AddArrow" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddArrow_Click">
+                        <Button x:Name="AddArrow" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddArrow_Click" ToolTipService.ToolTip="Arrow">
                             <Image Source="../assets/arrow.png" Width="20" Height="35" />
                         </Button>
-                        <Button x:Name="AddDottedArrow" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddDottedArrow_Click">
+                        <Button x:Name="AddDottedArrow" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddDottedArrow_Click" ToolTipService.ToolTip="Dotted Arrow">
                             <Image Source="../assets/dottedarrow.png" Width="20" Height="35" />
                         </Button>
                     </StackPanel>
