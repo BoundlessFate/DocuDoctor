@@ -114,11 +114,7 @@ namespace DocuDoctor.ViewController {
             return updatedBoxes;
         }
 
-        public void RedrawAllBoxes(SKCanvas canvas)
-        {
-          foreach(UmlBox b in m_boxes)
-                DisplayBox(b, canvas);
-        }
+        
         public UmlBox AddBox(SKPoint pos, string type)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: AddBox : Data                                         ::
