@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -45,6 +46,14 @@ namespace DocuDoctor.ViewController
         public bool methodSwitchDone;
         // Current button selected on toolbar, kept as an id 0-x
         public int toolbarSelection;
+        // Boolean used for frontend to determine when to print
+        private bool m_exportPhoto;
+        public bool ExportPhoto { get { return m_exportPhoto; } set { m_exportPhoto = value; } }
+        // Values used to scale the output photo
+        public float minX;
+        public float maxX;
+        public float minY;
+        public float maxY;
 
         public Data()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -64,6 +73,9 @@ namespace DocuDoctor.ViewController
             m_parameterTable = new DataTable();
             methodSwitchDone = true;
             toolbarSelection = 0;
+            m_exportPhoto = false;
+            minX = 0; maxX = 1;
+            minY = 0; maxY = 1;
         }
 
         public UmlBox AddBox(SKPoint pos)
@@ -78,6 +90,10 @@ namespace DocuDoctor.ViewController
             m_selectedForProperties = box;
             m_boxes.Add(box);
             CalculateWidthHeight(box);
+            if (minX > pos.X) minX = pos.X;
+            if (minY > pos.Y) minY = pos.Y;
+            if (maxX < pos.X + box.Width) maxX = pos.X + box.Width;
+            if (maxY < pos.Y + box.Height) maxY = pos.Y + box.Height;
             return box;
         }
 
@@ -355,6 +371,25 @@ namespace DocuDoctor.ViewController
                 textY += lineHeight;
             }
             canvas.Restore();
+        }
+
+        public void CalculateTranslationScale(out float transX, out float transY, out float scale) {
+            float screenAspectRatio = (float)Screen.PrimaryScreen.Bounds.Width / (float)Screen.PrimaryScreen.Bounds.Height;
+            float w = maxX - minX;
+            float h = maxY - minY;
+            float sourceAspectRatio = w/h;
+
+            if (sourceAspectRatio >= screenAspectRatio) {
+                transX = minX;
+                transY = minY * w / h;
+                scale = (float)Screen.PrimaryScreen.Bounds.Width / w;
+
+            } else {
+                // Image is taller than screen
+                transX = minX * h / w;
+                transY = minY;
+                scale = (float)Screen.PrimaryScreen.Bounds.Height / h;
+            }
         }
     }
 }

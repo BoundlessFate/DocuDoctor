@@ -3,6 +3,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
 using System.Diagnostics.Metrics;
+using System.IO;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using System.Windows;
@@ -799,6 +800,8 @@ namespace DocuDoctor.ViewController
             ClearAllToolbarButtons();
             AddArrow.Background = new SolidColorBrush(Colors.Yellow);
             m_data.toolbarSelection = 5;
+            m_data.ExportPhoto = true;
+            skCanvas.InvalidateVisual();
         }
 
         private void buttonAddDottedArrow_Click(object sender, RoutedEventArgs e)
@@ -841,6 +844,34 @@ namespace DocuDoctor.ViewController
             }
         }
 
+        private void PrintPhoto(SKSurface s) {
+            m_data.ExportPhoto = false;
+            // To get the photo to look nice, zoom in and translate nicely, and then go back to how it was before
+            m_data.CalculateTranslationScale(out float transX, out float transY, out float scale);
+            float oldScale = m_data.Scale;
+            float oldTransX = m_data.TranslationX;
+            float oldTransY = m_data.TranslationY;
+            m_data.Scale = scale; m_data.TranslationX = transX; m_data.TranslationY = transY;
+            skCanvas.InvalidateVisual();
+            SKImage image = s.Snapshot();
+            SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
+            m_data.Scale = oldScale; m_data.TranslationX = oldTransX; m_data.TranslationY = oldTransY;
+            //skCanvas.InvalidateVisual();
+            Dispatcher.CurrentDispatcher.InvokeAsync(() =>
+            {
+                SaveFileDialog saveFileDialog = new SaveFileDialog {
+                    Filter = "PNG Image|*.png",
+                    Title = "Save PNG File",
+                    FileName = "output.png"
+                };
+                if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                    using (FileStream stream = File.OpenWrite(saveFileDialog.FileName)) {
+                        data.SaveTo(stream);
+                    }
+                }
+            });
+        }
+
         private void OnPaintSurface(object sender, SKPaintSurfaceEventArgs e)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: OnPaintSurface : MainWindow                           ::
@@ -854,6 +885,7 @@ namespace DocuDoctor.ViewController
             e.Surface.Canvas.Scale(m_data.Scale);
             m_data.RedrawAllBoxes(e.Surface.Canvas);
             m_data.RedrawAllArrows(e.Surface.Canvas);
+            if (m_data.ExportPhoto) PrintPhoto(e.Surface);
         }
     }
 }
