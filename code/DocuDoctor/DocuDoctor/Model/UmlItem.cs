@@ -11,7 +11,10 @@
     /// <summary>
     /// Data object for variables
     /// </summary>
-    public class UmlVariable : UmlItem {
+
+    public class UmlVariable : UmlItem
+    {
+        // Variables used for store and display of variable items
         protected string m_protection;
         public string Protection { get { return m_protection; } set { m_protection = value; } }
         protected string m_type;
@@ -24,17 +27,7 @@
         :: 1. Method: UmlVariable : UmlVariable                             ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: Initializer for variables                            ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: protection - protection level               ::
-        ::                            type - type of variable               ::
-        ::                            name - name of variable               ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Initializer for variables                            ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             m_protection = protection;
@@ -48,15 +41,7 @@
         :: 1. Method: ToString : UmlVariable                                ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: Overrides ToString allowing for easier display       ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: None                                        ::
-        :: 6. Output Parameters: string containing data about variable      ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Overrides ToString allowing for easier display       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             if(m_protection.Equals(""))
@@ -68,26 +53,19 @@
     /// <summary>
     /// Data object for methods
     /// </summary>
-    public class UmlMethod : UmlVariable {
+
+    public class UmlMethod : UmlVariable
+    {
+        // Variables used for store and display of method items
         protected List<UmlVariable> m_parameters;
         public List<UmlVariable> Parameters { get { return m_parameters; } set { m_parameters = value; } }
+
         public UmlMethod(string protection, string returnType, string name, List<List<String>> parameters) : base(protection, returnType, name)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: UmlMethod : UmlMethod                                 ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: Initializer for methods                              ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: protection - protection level               ::
-        ::                      returnType - return type of method          ::
-        ::                            name - name of method                 ::
-        ::                      parameters - input parameters               ::
-        :: 6. Output Parameters: None                                       ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Initializer for methods                              ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             m_parameters = [];
@@ -117,21 +95,13 @@
         :: 1. Method: ToString : UmlMethod                                  ::
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Created: 1/10/2025                                            ::
-        :: 4. Purpose: Overrides ToString allowing for easier display       ::
-        :: ---------------------------------------------------------------- ::
-        :: 5. Input Parameters: None                                        ::
-        :: 6. Output Parameters: string containing data about method        ::
-        :: 7. Preconditions: None                                           ::
-        :: 8. Throws: None                                                  ::
-        :: ---------------------------------------------------------------- ::
-        :: 9. Modifications: None                                           ::
+        :: 3. Purpose: Overrides ToString allowing for easier display       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            string str = m_protection + " " + m_type + " " + m_name + " (";
-            for(int i = 0; i < m_parameters.Count; i++) {
-                if(i != 0)
-                    str += ", ";
+
+            string str = m_protection + " " + m_type + " " + m_name + "(";
+            for (int i = 0; i < m_parameters.Count; i++) {
+                if (i != 0) str += ", ";
                 str += m_parameters[i].ToString();
             }
             str += ")";

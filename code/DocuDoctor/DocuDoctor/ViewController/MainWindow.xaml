@@ -141,18 +141,44 @@
                     <ColumnDefinition Width="40" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <!-- File Browser -->
+                <!-- Method Parameters -->
                 <Grid
-                    Background="#ff0000"
+                    Background="#313638"
                     Grid.Column="0"
                     >
-                    
+
+                    <DataGrid Name="ParameterGrid" AutoGenerateColumns="True" VerticalAlignment="Top" MinHeight="750" MaxHeight="750"
+                                        VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,30,0,0" ColumnWidth="*">
+                    </DataGrid>
                 </Grid>
                 <!-- Tool Bar -->
                 <Grid
-                    Background="#00ff00" 
+                    Background="#cfcfcf" 
                     Grid.Column="1"
                     >
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <Button x:Name="Deselect" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonDeselect_Click" ToolTipService.ToolTip="Deselect">
+                            <Image Source="../assets/Deselect.png" Width="20" Height="35" />
+                        </Button>
+                        <Button x:Name="Delete" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonDelete_Click" ToolTipService.ToolTip="Delete">
+                            <Image Source="../assets/EraseItem.png" Width="20" Height="35" />
+                        </Button>
+                        <Button x:Name="AddClass" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddClass_Click" ToolTipService.ToolTip="Class">
+                            <Image Source="../assets/AddClass.png" Width="20" Height="35" />
+                        </Button>
+                        <Button x:Name="AddInterface" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddInterface_Click" ToolTipService.ToolTip="Interface">
+                            <Image Source="../assets/AddInterface.png" Width="20" Height="35" />
+                        </Button>
+                        <Button x:Name="AddTemplate" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddTemplate_Click" ToolTipService.ToolTip="Template">
+                            <Image Source="../assets/AddTemplate.png" Width="20" Height="35" />
+                        </Button>
+                        <Button x:Name="AddArrow" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddArrow_Click" ToolTipService.ToolTip="Arrow">
+                            <Image Source="../assets/arrow.png" Width="20" Height="35" />
+                        </Button>
+                        <Button x:Name="AddDottedArrow" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddDottedArrow_Click" ToolTipService.ToolTip="Dotted Arrow">
+                            <Image Source="../assets/dottedarrow.png" Width="20" Height="35" />
+                        </Button>
+                    </StackPanel>
                 </Grid>
                 <Grid Grid.Column="2">
                     <Grid.RowDefinitions>
@@ -162,6 +188,7 @@
                     <Grid Grid.Row="0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="1" />
                             <ColumnDefinition Width="250" />
                         </Grid.ColumnDefinitions>
                         <!-- Main Area -->
@@ -171,18 +198,82 @@
                             >
                             <skia:SKElement x:Name="skCanvas" PaintSurface="OnPaintSurface" />
                         </Grid>
-                        <!-- Properties Page -->
+                        <!-- Spacer Page -->
                         <Grid
                             Grid.Column="1"
-                            Background="#0000ff" 
+                            Background="#303030" 
                             >
+                        </Grid>
+                        <!-- Properties Page -->
+                        <Grid
+                            Grid.Column="2"
+                            Background="#313638" 
+                            >
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="15" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <!-- Property Text Element At Top -->
+                            <Grid Grid.Row="0">
+                                <TextBlock Foreground="#f8f8ff" FontSize="10" Margin="10,0,0,0" VerticalAlignment="Center">Properties</TextBlock>
+                            </Grid>
+                            <!-- Maleable Section Of Properties Page -->
+                            <Grid Grid.Row="1">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="25" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Row="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="50" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Label Foreground="#f8f8ff" Content="Name:" Grid.Column="0" VerticalAlignment="Center" />
+                                    <TextBox Name="boxName" Grid.Row="0" Grid.Column="1" Width="200" />
+                                </Grid>
+                                <Grid Grid.Row="1">
+                                    <Label Foreground="#f8f8ff" Content="Properties:" VerticalAlignment="Top" />
+                                    <DataGrid Name="PropertyGrid" AutoGenerateColumns="True" Height="200" VerticalAlignment="Top" 
+                                        VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,30,0,0" ColumnWidth="*">
+                                    </DataGrid>
+                                </Grid>
+                                <Grid Grid.Row="2">
+                                    <Label Foreground="#f8f8ff" Content="Methods:" VerticalAlignment="Top" />
+                                    <DataGrid Name="MethodGrid" AutoGenerateColumns="True" Height="200" VerticalAlignment="Top" 
+                                        VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,30,0,0" ColumnWidth="*">
+                                    </DataGrid>
+                                </Grid>
+                            </Grid>
                         </Grid>
                     </Grid>
                     <!-- Status Bar -->
                     <Grid
                         Grid.Row="1"
-                        Background="#c66ac6" 
+                        Background="#303030" 
                         >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width = "*" />
+                            <ColumnDefinition Width = "140" />
+                            <ColumnDefinition Width = "40" />
+                            <ColumnDefinition Width = "140" />
+                            <ColumnDefinition Width = "40" />
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0">
+                            <TextBlock VerticalAlignment="Center" FontSize="14" Foreground="#f8f8ff" Text ="With ❤️ From RCOS" HorizontalAlignment="Left" Margin="10" />
+                        </Grid>
+                        <Grid Grid.Column="1">
+                            <TextBlock Name="RamUsageText" VerticalAlignment="Center" FontSize="14" Foreground="#f8f8ff" Text ="RAM Usage" HorizontalAlignment="Right" />
+                        </Grid>
+                        <Grid Grid.Column="2">
+                            <ProgressBar Name="RamUsageBar" Height="20" Minimum="0" Maximum="100" Width="20" HorizontalAlignment="Center"/>
+                        </Grid>
+                        <Grid Grid.Column="3">
+                            <TextBlock Name="CpuUsageText" VerticalAlignment="Center" FontSize="14" Foreground="#f8f8ff" Text ="CPU Usage" HorizontalAlignment="Right" />
+                        </Grid>
+                        <Grid Grid.Column="4">
+                            <ProgressBar Name="CpuUsageBar" Height="20" Minimum="0" Maximum="100" Width="20" HorizontalAlignment="Center"/>
+                        </Grid>
                     </Grid>
                 </Grid>
             </Grid>
