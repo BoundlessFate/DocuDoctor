@@ -1,4 +1,6 @@
-﻿namespace DocuDoctor.Model {
+﻿using System.Numerics;
+
+namespace DocuDoctor.Model {
     /// <summary>
     /// Container Object For UML Items (aka Classes, Templates, Interfaces)
     /// </summary>
@@ -30,6 +32,12 @@
         public float Width { get { return m_width; } set { m_width = value; } }
         private float m_height;
         public float Height { get { return m_height; } set { m_height = value; } }
+
+        public System.Windows.Vector Top { get { return new System.Windows.Vector(m_x + (m_width / 2), m_y); } }
+        public System.Windows.Vector Left { get { return new System.Windows.Vector(m_x, m_y+(m_height / 2)); } }
+        public System.Windows.Vector Bottom { get { return new System.Windows.Vector(m_x + (m_width / 2), m_y+m_height); } }
+        public System.Windows.Vector Right { get { return new System.Windows.Vector(m_x+m_width, m_y + (m_height / 2)); } }
+        public System.Windows.Vector[] ArrowPoints { get { return [Top, Bottom, Left, Right]; } }
 
         // Id will be randomized and assinged on initialize.
         // By using a long, the chance of a collision is as close to 0 as imaginable
@@ -100,6 +108,8 @@
             }
             m_arrows.Add((id, type));
         }
+
+
 
         public override string ToString()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
