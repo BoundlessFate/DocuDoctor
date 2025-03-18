@@ -1,3 +1,4 @@
+
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
@@ -8,16 +9,18 @@ using System.Windows.Controls;
 using DocuDoctor.Model;
 using SkiaSharp;
 
-namespace DocuDoctor.ViewController
-{
+namespace DocuDoctor.ViewController {
     /// <summary>
     /// Holds all stored data for main window
     /// </summary>
-    internal class Data
-    {
+    internal class Data {
         // Main list where uml boxes are stored in
         protected List<UmlBox> m_boxes;
         public List<UmlBox> Boxes { get { return m_boxes; } }
+
+        protected List<string> m_files;
+        public List<string> Files { get { return m_files; } }
+
 
         // The box being currently moved (used when you click and drag a box)
         private UmlBox m_movedBox;
@@ -33,6 +36,7 @@ namespace DocuDoctor.ViewController
         private float m_translationX;
         public float TranslationX { get { return m_translationX; } set { m_translationX = value; } }
         private float m_translationY;
+        
         public float TranslationY { get { return m_translationY; } set { m_translationY = value; } }
         // Current box being displayed on the propreties pages
         private UmlBox m_selectedForProperties;
@@ -84,6 +88,41 @@ namespace DocuDoctor.ViewController
             return box;
         }
 
+
+
+        public bool ReadFile(string fileName)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: ReadFile : Data                                       ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Riley Horling                                         ::
+        :: 3. Created: 1/28/2025                                            ::
+        :: 4. Purpose: Takes in a file name and reads it and                ::
+        ::    adds any registered boxes                                     ::
+        :: ---------------------------------------------------------------- ::
+        :: 5. Input Parameters: fileName - path to the file to be read      ::
+        :: 6. Output Parameters: bool, did the file contain any classes     ::
+        :: 7. Preconditions: None                                           ::
+        :: 8. Throws: None                                                  ::
+        :: ---------------------------------------------------------------- ::
+        :: 9. Modifications: None                                           ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
+            Parser parser = new Parser(fileName);
+            bool updatedBoxes = false;
+            float xOffset = 0;
+            foreach(UmlBox box in parser.ParseFile()) {
+                CalculateWidthHeight(box);
+                box.X = xOffset+5;
+                xOffset += box.Width;
+                m_boxes.Add(box);
+
+                updatedBoxes = true;
+                m_selectedForProperties = box;
+            }
+            return updatedBoxes;
+        }
+
+        
         public UmlBox AddBox(SKPoint pos, string type)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: AddBox : Data                                         ::
@@ -110,11 +149,13 @@ namespace DocuDoctor.ViewController
             // If you are already moving a box, keep moving that one
             // Find the box you are trying to move based on the x y coordinates
             UmlBox selectedBox = m_movedBox;
+
             x *= m_dpiScale;
             y*= m_dpiScale;
             if (selectedBox == null)
             {
                 // Search backwards, so you move the topmost box (since topmost is inherently drawn last aka on top)
+
                 for (int i = m_boxes.Count - 1; i >= 0; i--)
                 {
                     UmlBox b = m_boxes[i];
@@ -122,11 +163,13 @@ namespace DocuDoctor.ViewController
                     {
                         selectedBox = b;
                         // Move the current box to the end of the boxlist so its drawn on top
-                        m_boxes.RemoveAt(i); m_boxes.Add(b);
+                        m_boxes.RemoveAt(i);
+                        m_boxes.Add(b);
                         break;
                     }
                 }
             }
+
             return selectedBox;
         }
 
@@ -240,13 +283,12 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: removes a box from the screen at defined point       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            float x = mPos.X; float y = mPos.Y;
+            float x = mPos.X;
+            float y = mPos.Y;
             // Search backwards, so you move the topmost box (since topmost is inherently drawn last aka on top)
-            for (int i = m_boxes.Count - 1; i >= 0; i--)
-            {
+            for(int i = m_boxes.Count - 1; i >= 0; i--) {
                 UmlBox b = m_boxes[i];
-                if (b.X <= x && x < b.X + b.Width && b.Y <= y && y < b.Y + b.Height)
-                {
+                if(b.X <= x && x < b.X + b.Width && b.Y <= y && y < b.Y + b.Height) {
                     // Delete the topmost box at that position, aka, what is being acted on
                     m_boxes.RemoveAt(i);
                     m_selectedForProperties = null;
@@ -263,32 +305,34 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: Given a box, set its width and height properties     ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            SKPaint textPaint = new SKPaint
-            {
+            SKPaint textPaint = new SKPaint {
                 Color = SKColors.White,
                 TextSize = 24,
                 IsAntialias = true
             };
-            float maxWidth = 0; float totalHeight = 0;
+            float maxWidth = 0;
+            float totalHeight = 0;
             float lineHeight = textPaint.TextSize + 10;
             // Header for the box itself
             float textWidth = textPaint.MeasureText(box.ToString());
-            if (textWidth > maxWidth) maxWidth = textWidth;
+            if(textWidth > maxWidth)
+                maxWidth = textWidth;
             totalHeight += lineHeight;
             // All the variables
-            foreach (UmlVariable v in box.Variables)
-            {
+            foreach(UmlVariable v in box.Variables) {
                 textWidth = textPaint.MeasureText(v.ToString());
-                if (textWidth > maxWidth) maxWidth = textWidth;
+                if(textWidth > maxWidth)
+                    maxWidth = textWidth;
                 totalHeight += lineHeight;
             }
             // All the methods
-            foreach (UmlMethod m in box.Methods)
-            {
+            foreach(UmlMethod m in box.Methods) {
                 textWidth = textPaint.MeasureText(m.ToString());
-                if (textWidth > maxWidth) maxWidth = textWidth;
+                if(textWidth > maxWidth)
+                    maxWidth = textWidth;
                 totalHeight += lineHeight;
             }
+
             if (box.Variables.Count > 0 && box.Methods.Count > 0) totalHeight += lineHeight / 2;
             box.Width = maxWidth + 20; box.Height = totalHeight + 20;
         }
@@ -302,6 +346,7 @@ namespace DocuDoctor.ViewController
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             // Create variables to store the x and y (may improve lookup times EVER so slightly not fully sure)
+
             float x = box.X; float y = box.Y;
             SKPaint textPaint = new SKPaint
             {
@@ -311,8 +356,7 @@ namespace DocuDoctor.ViewController
             };
             float lineHeight = textPaint.TextSize + 10;
             // Draw The Box
-            SKPaint boxPaint = new SKPaint
-            {
+            SKPaint boxPaint = new SKPaint {
                 Color = SKColors.LightGray,
                 IsAntialias = true,
                 Style = SKPaintStyle.Fill
@@ -322,8 +366,7 @@ namespace DocuDoctor.ViewController
             else if (box.BoxType == "Template") boxPaint.Color = new SKColor(255, 216, 201);
             canvas.DrawRect(new SKRect(x, y, x + box.Width, y + box.Height), boxPaint);
             // Draw The Border
-            SKPaint borderPaint = new SKPaint
-            {
+            SKPaint borderPaint = new SKPaint {
                 Color = SKColors.Black,
                 IsAntialias = true,
                 Style = SKPaintStyle.Stroke,
@@ -337,13 +380,14 @@ namespace DocuDoctor.ViewController
             canvas.DrawRect(x, y, box.Width, box.Height, borderPaint);
             // Clip the canvas
             canvas.Save();
-            canvas.ClipRect(new SKRect(x,y,x+box.Width,y+box.Height));
-            float textX = x + 10; float textY = y + 10 + textPaint.TextSize;
+            canvas.ClipRect(new SKRect(x, y, x + box.Width, y + box.Height));
+            float textX = x + 10;
+            float textY = y + 10 + textPaint.TextSize;
             // Display the box header
             canvas.DrawText(box.ToString(), textX, textY, textPaint);
             textY += lineHeight;
             // Display the variables
-            foreach (UmlVariable v in box.Variables) {
+            foreach(UmlVariable v in box.Variables) {
                 canvas.DrawText(v.ToString(), textX, textY, textPaint);
                 textY += lineHeight;
             }
@@ -354,8 +398,7 @@ namespace DocuDoctor.ViewController
                 textY += lineHeight;
             }
             // Display the methods
-            foreach (UmlMethod m in box.Methods)
-            {
+            foreach(UmlMethod m in box.Methods) {
                 canvas.DrawText(m.ToString(), textX, textY, textPaint);
                 textY += lineHeight;
             }

@@ -4,6 +4,7 @@
              xmlns:local="clr-namespace:DocuDoctor"
              StartupUri="ViewController/MainWindow.xaml">
     <Application.Resources>
-         
+
+        
     </Application.Resources>
 </Application>

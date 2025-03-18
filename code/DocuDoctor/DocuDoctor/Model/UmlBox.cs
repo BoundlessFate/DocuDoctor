@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DocuDoctor.Model
-{
+﻿namespace DocuDoctor.Model {
     /// <summary>
     /// Container Object For UML Items (aka Classes, Templates, Interfaces)
     /// </summary>
+
     public class UmlBox
     {
         // Type of box (class, template, interface)
@@ -25,7 +18,8 @@ namespace DocuDoctor.Model
         public List<UmlVariable> Variables { get { return m_variables; } }
         // List of methods that the container type contains
         private List<UmlMethod> m_methods;
-        public List<UmlMethod> Methods { get { return m_methods; } }
+        public List<UmlMethod> Methods { get { 
+                return m_methods; } }
 
         // variables used and stored for display on refresh of screen
         private float m_x;
@@ -53,6 +47,7 @@ namespace DocuDoctor.Model
         :: 3. Purpose: Initializer for UML Boxes                            ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
+
             m_boxType = type; m_name = name; m_variables = []; m_methods = [];
             m_x = x; m_y = y; m_width = 0; m_height = 1;
             // Initialize a random id to show which 
@@ -70,6 +65,14 @@ namespace DocuDoctor.Model
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             m_methods.Add(new UmlMethod(protection, returnType, name, parameters));
+        }
+
+        public void AddMethod(UmlMethod newMethod) {
+            m_methods.Add(newMethod);
+        }
+
+        public void AddVariable(UmlVariable newVariable) {
+            m_variables.Add(newVariable);
         }
 
         public void AddVariable(string protection, string type, string name)

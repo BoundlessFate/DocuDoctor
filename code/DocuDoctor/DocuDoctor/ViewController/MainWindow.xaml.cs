@@ -1,3 +1,4 @@
+
 ﻿using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
@@ -14,6 +15,7 @@ using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Shell;
@@ -33,6 +35,7 @@ namespace DocuDoctor.ViewController
         private Data m_data;
         // Whether the mouse is being clicked
         private bool m_clicked;
+        private bool m_updatingTable;
         // Variables used for canvas movement and scaling and object manipulation
         private SKPoint m_lastMousePos;
         private SKPoint m_initialMousePos;
@@ -98,6 +101,8 @@ namespace DocuDoctor.ViewController
             skCanvas.MouseWheel += SkCanvas_MouseWheel;
             KeyDown += Screen_KeyDown;
             KeyUp += Screen_KeyUp;
+            fileButton.Click += FileButton_OnClick;
+
         }
 
         private void Screen_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -108,7 +113,18 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: handles events when you click keys in window         ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            if (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl) m_ctrlClicked = true;
+            if(e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl)
+                m_ctrlClicked = true;
+        }
+
+        private void FileButton_OnClick(object sender, RoutedEventArgs e) {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.ShowDialog();
+            bool newBoxes = m_data.ReadFile(openFileDialog.FileName);
+            if(newBoxes) {
+                UpdateProperties();
+                skCanvas.InvalidateVisual();
+            }
         }
 
         private void Screen_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
@@ -119,7 +135,8 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: handles events when you release keys in window       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            if (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl) m_ctrlClicked = false;
+            if(e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl)
+                m_ctrlClicked = false;
         }
 
         private void SkCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -131,7 +148,8 @@ namespace DocuDoctor.ViewController
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             float scaleFactor = 1.25f;
-            if (!m_ctrlClicked) return;
+            if(!m_ctrlClicked)
+                return;
             System.Windows.Point curPos = e.GetPosition(skCanvas);
             float oldScale = m_data.Scale;
             // Zoom in
@@ -146,8 +164,9 @@ namespace DocuDoctor.ViewController
             }
             m_data.TranslationX = (float)(curPos.X - (curPos.X - m_data.TranslationX) * (m_data.Scale / oldScale));
             m_data.TranslationY = (float)(curPos.Y - (curPos.Y - m_data.TranslationY) * (m_data.Scale / oldScale));
-            m_initialMousePos = new SKPoint((float)(curPos.X),(float)curPos.Y);
-            m_initialTransformX = m_data.TranslationX; m_initialTransformY = m_data.TranslationY;
+            m_initialMousePos = new SKPoint((float)(curPos.X), (float)curPos.Y);
+            m_initialTransformX = m_data.TranslationX;
+            m_initialTransformY = m_data.TranslationY;
             skCanvas.InvalidateVisual();
         }
 
@@ -171,18 +190,21 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: handles events when you move mouse in skcanvas       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
+
             if (!m_clicked || m_data.toolbarSelection != 0) return;
             else if (m_clicked && e.MouseDevice.LeftButton == MouseButtonState.Released) { m_clicked = false; return; }
             System.Windows.Point mPos = e.GetPosition(skCanvas);
-            mPos.X -= m_data.TranslationX; mPos.X /= m_data.Scale;
-            mPos.Y -= m_data.TranslationY; mPos.Y /= m_data.Scale;
+            mPos.X -= m_data.TranslationX;
+            mPos.X /= m_data.Scale;
+            mPos.Y -= m_data.TranslationY;
+            mPos.Y /= m_data.Scale;
             SKPoint curMousePos = new SKPoint((float)mPos.X, (float)mPos.Y);
             float deltaX = curMousePos.X - m_lastMousePos.X;
             float deltaY = curMousePos.Y - m_lastMousePos.Y;
-            if (!m_data.MoveBox(m_lastMousePos.X, m_lastMousePos.Y, deltaX, deltaY) && m_ctrlClicked) {
+            if(!m_data.MoveBox(m_lastMousePos.X, m_lastMousePos.Y, deltaX, deltaY) && m_ctrlClicked) {
                 System.Windows.Point curPos = e.GetPosition(skCanvas);
-                m_data.TranslationX = m_initialTransformX + ((float)curPos.X-m_initialMousePos.X) / m_data.Scale;
-                m_data.TranslationY = m_initialTransformY + ((float)curPos.Y-m_initialMousePos.Y) /m_data.Scale;
+                m_data.TranslationX = m_initialTransformX + ((float)curPos.X - m_initialMousePos.X) / m_data.Scale;
+                m_data.TranslationY = m_initialTransformY + ((float)curPos.Y - m_initialMousePos.Y) / m_data.Scale;
             }
             UpdateProperties();
             skCanvas.InvalidateVisual();
@@ -197,10 +219,13 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: handles events when you click mouse in skcanvas      ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            System.Windows.Point mPos = e.GetPosition(skCanvas); 
-            mPos.X -= m_data.TranslationX; mPos.X /= m_data.Scale;
-            mPos.Y -= m_data.TranslationY; mPos.Y /= m_data.Scale;
+            System.Windows.Point mPos = e.GetPosition(skCanvas);
+            mPos.X -= m_data.TranslationX;
+            mPos.X /= m_data.Scale;
+            mPos.Y -= m_data.TranslationY;
+            mPos.Y /= m_data.Scale;
             SKPoint internalPos = new((float)mPos.X, (float)mPos.Y);
+
             if (e.LeftButton == MouseButtonState.Pressed) {
                 switch (m_data.toolbarSelection) {
                     case 1:
@@ -236,7 +261,8 @@ namespace DocuDoctor.ViewController
             if (e.LeftButton == MouseButtonState.Released) return;
             m_lastMousePos = internalPos;
             m_initialMousePos = internalPos;
-            m_initialTransformX = m_data.TranslationX; m_initialTransformY = m_data.TranslationY;
+            m_initialTransformX = m_data.TranslationX;
+            m_initialTransformY = m_data.TranslationY;
             m_clicked = true;
         }
         private void UpdateProperties()
@@ -247,6 +273,8 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: Update properties panel with currently selected box  ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
+            // Prevents syncing incomplete tables to the box
+            m_updatingTable = true;
             UmlBox cur = m_data.SelectedForProperties;
             m_data.PropertyTable.Rows.Clear();
             m_data.MethodTable.Rows.Clear();
@@ -260,6 +288,7 @@ namespace DocuDoctor.ViewController
             {
                 m_data.MethodTable.Rows.Add(cur.Methods[i].Protection, cur.Methods[i].Name, cur.Methods[i].Name);
             }
+            m_updatingTable=false;
         }
 
         private void OnStartup()
@@ -272,6 +301,7 @@ namespace DocuDoctor.ViewController
         {
             m_data = new Data();
             m_clicked = false;
+            m_updatingTable = false;
             WindowState = WindowState.Maximized;
             WindowStyle = WindowStyle.ThreeDBorderWindow;
             ResizeMode = ResizeMode.CanResize;
@@ -398,6 +428,7 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: Syncs property table to backend                      ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
+            if(m_updatingTable) return;
             if (m_data.SelectedForProperties == null) {
                 // Add a new box if nothing is selected when you start writing
                 UmlBox b = m_data.AddBox(new SKPoint(0, 0));
@@ -489,6 +520,8 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: Syncs method table to backend                        ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
+            if(m_updatingTable)
+                return;
             if (m_data.SelectedForProperties == null)
             {
                 // Add a new box if nothing is selected when you start writing
@@ -551,7 +584,7 @@ namespace DocuDoctor.ViewController
                         && l[lIndex].Protection == t.Rows[r][0].ToString()
                         && l[lIndex].Type == t.Rows[r][1].ToString()
                         && l[lIndex].Name == t.Rows[r][2].ToString()) { lIndex++; continue; }
-                    l.Insert(lIndex, new UmlMethod(t.Rows[r][0].ToString() ?? "", t.Rows[r][1].ToString() ?? "", t.Rows[r][2].ToString() ?? "", []));
+                    l.Insert(lIndex, new UmlMethod(t.Rows[r][0].ToString() ?? "", t.Rows[r][1].ToString() ?? "", t.Rows[r][2].ToString() ?? "", new List<List<string>>()));
                     lIndex++;
                 }
             } else {
@@ -697,7 +730,7 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: Action for the maximize button                       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            if (this.WindowState == WindowState.Maximized) {
+            if(this.WindowState == WindowState.Maximized) {
                 this.WindowState = WindowState.Normal;
                 windowedButton.Source = new BitmapImage(new Uri("pack://application:,,,/assets/maximize.png"));
                 return;
@@ -833,12 +866,12 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: Action for when left clicking on anywhere in window  ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            if (e.GetPosition(this).Y < 40) {
-                if (this.WindowState == WindowState.Maximized) {
+            if(e.GetPosition(this).Y < 40) {
+                if(this.WindowState == WindowState.Maximized) {
                     // Multi monitor support with drag to windowed mode
                     nint windowHandle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
                     Screen currentScreen = Screen.FromHandle(windowHandle);
-                    double amountCovered = e.GetPosition(this).X/this.Width;
+                    double amountCovered = e.GetPosition(this).X / this.Width;
                     // Since it is full screen at this point, position relative to window is relative to screen
                     double screenX = e.GetPosition(this).X;
                     this.WindowState = WindowState.Normal;
