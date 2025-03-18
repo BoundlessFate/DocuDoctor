@@ -61,6 +61,17 @@ namespace DocuDoctor.ViewController
             OnStartup();
             AddEvents();
             BindElements();
+            Loaded += MainWindow_Loaded;
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            //grabs the correct system dpi scale only after the window is loaded, otherwise it would not get the correct scale
+            PresentationSource source = PresentationSource.FromVisual(this);
+            float dpiScale = (float)(source?.CompositionTarget?.TransformToDevice.M11 ?? 1.0);
+
+            m_data.DpiScale = dpiScale;
+
         }
 
         private void BindElements()
@@ -142,12 +153,14 @@ namespace DocuDoctor.ViewController
             System.Windows.Point curPos = e.GetPosition(skCanvas);
             float oldScale = m_data.Scale;
             // Zoom in
-            if(e.Delta > 0) {
-                m_data.Scale *= scaleFactor;
+            if (e.Delta > 0)
+            {
+                m_data.Scale *= (scaleFactor);
             }
             // Zoom out
-            else {
-                m_data.Scale /= scaleFactor;
+            else 
+            {
+                m_data.Scale /= (scaleFactor);
             }
             m_data.TranslationX = (float)(curPos.X - (curPos.X - m_data.TranslationX) * (m_data.Scale / oldScale));
             m_data.TranslationY = (float)(curPos.Y - (curPos.Y - m_data.TranslationY) * (m_data.Scale / oldScale));
