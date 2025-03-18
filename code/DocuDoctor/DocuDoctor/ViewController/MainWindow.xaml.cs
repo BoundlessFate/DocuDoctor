@@ -13,6 +13,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 using System.Windows.Navigation;
@@ -560,7 +561,7 @@ namespace DocuDoctor.ViewController
                         && l[lIndex].Protection == t.Rows[r][0].ToString()
                         && l[lIndex].Type == t.Rows[r][1].ToString()
                         && l[lIndex].Name == t.Rows[r][2].ToString()) { lIndex++; continue; }
-                    l.Insert(lIndex, new UmlMethod(t.Rows[r][0].ToString() ?? "", t.Rows[r][1].ToString() ?? "", t.Rows[r][2].ToString() ?? "", []));
+                    l.Insert(lIndex, new UmlMethod(t.Rows[r][0].ToString() ?? "", t.Rows[r][1].ToString() ?? "", t.Rows[r][2].ToString() ?? "", new List<List<string>>()));
                     lIndex++;
                 }
             } else {

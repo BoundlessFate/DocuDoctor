@@ -33,6 +33,7 @@ namespace DocuDoctor.ViewController {
         private float m_translationX;
         public float TranslationX { get { return m_translationX; } set { m_translationX = value; } }
         private float m_translationY;
+        
         public float TranslationY { get { return m_translationY; } set { m_translationY = value; } }
         // Current box being displayed on the propreties pages
         private UmlBox m_selectedForProperties;
@@ -105,8 +106,11 @@ namespace DocuDoctor.ViewController {
         {
             Parser parser = new Parser(fileName);
             bool updatedBoxes = false;
+            float xOffset = 0;
             foreach(UmlBox box in parser.ParseFile()) {
                 CalculateWidthHeight(box);
+                box.X = xOffset+5;
+                xOffset += box.Width;
                 m_boxes.Add(box);
                 updatedBoxes = true;
 

@@ -18,7 +18,8 @@
         public List<UmlVariable> Variables { get { return m_variables; } }
         // List of methods that the container type contains
         private List<UmlMethod> m_methods;
-        public List<UmlMethod> Methods { get { return m_methods; } }
+        public List<UmlMethod> Methods { get { 
+                return m_methods; } }
 
         // variables used and stored for display on refresh of screen
         private float m_x;

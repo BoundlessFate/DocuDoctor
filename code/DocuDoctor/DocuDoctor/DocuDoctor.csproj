@@ -48,8 +48,6 @@
     <Resource Include="assets\close.png" />
     <Resource Include="assets\Docudoctor.ico" />
     <Resource Include="assets\Deselect.png" />
-    <Resource Include="assets\DocumentationDoctor.ico" />
-    <Resource Include="assets\DocumentationDoctor.png" />
     <Resource Include="assets\dottedarrow.png" />
     <Resource Include="assets\EraseItem.png" />
     <Resource Include="assets\maximize.png" />
