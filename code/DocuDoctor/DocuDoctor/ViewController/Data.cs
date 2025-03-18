@@ -112,8 +112,9 @@ namespace DocuDoctor.ViewController {
                 box.X = xOffset+5;
                 xOffset += box.Width;
                 m_boxes.Add(box);
-                updatedBoxes = true;
 
+                updatedBoxes = true;
+                m_selectedForProperties = box;
             }
             return updatedBoxes;
         }

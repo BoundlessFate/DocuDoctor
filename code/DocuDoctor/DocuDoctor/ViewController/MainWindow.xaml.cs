@@ -35,6 +35,7 @@ namespace DocuDoctor.ViewController
         private Data m_data;
         // Whether the mouse is being clicked
         private bool m_clicked;
+        private bool m_updatingTable;
         // Variables used for canvas movement and scaling and object manipulation
         private SKPoint m_lastMousePos;
         private SKPoint m_initialMousePos;
@@ -109,8 +110,10 @@ namespace DocuDoctor.ViewController
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.ShowDialog();
             bool newBoxes = m_data.ReadFile(openFileDialog.FileName);
-            if(newBoxes)
+            if(newBoxes) {
+                UpdateProperties();
                 skCanvas.InvalidateVisual();
+            }
         }
 
         private void Screen_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
@@ -257,6 +260,8 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: Update properties panel with currently selected box  ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
+            // Prevents syncing incomplete tables to the box
+            m_updatingTable = true;
             UmlBox cur = m_data.SelectedForProperties;
             m_data.PropertyTable.Rows.Clear();
             m_data.MethodTable.Rows.Clear();
@@ -270,6 +275,7 @@ namespace DocuDoctor.ViewController
             {
                 m_data.MethodTable.Rows.Add(cur.Methods[i].Protection, cur.Methods[i].Name, cur.Methods[i].Name);
             }
+            m_updatingTable=false;
         }
 
         private void OnStartup()
@@ -282,6 +288,7 @@ namespace DocuDoctor.ViewController
         {
             m_data = new Data();
             m_clicked = false;
+            m_updatingTable = false;
             WindowState = WindowState.Maximized;
             WindowStyle = WindowStyle.ThreeDBorderWindow;
             ResizeMode = ResizeMode.CanResize;
@@ -408,6 +415,7 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: Syncs property table to backend                      ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
+            if(m_updatingTable) return;
             if (m_data.SelectedForProperties == null) {
                 // Add a new box if nothing is selected when you start writing
                 UmlBox b = m_data.AddBox(new SKPoint(0, 0));
@@ -499,6 +507,8 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: Syncs method table to backend                        ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
+            if(m_updatingTable)
+                return;
             if (m_data.SelectedForProperties == null)
             {
                 // Add a new box if nothing is selected when you start writing
