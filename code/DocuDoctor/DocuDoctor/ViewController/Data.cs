@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using DocuDoctor.Model;
 using SkiaSharp;
@@ -229,10 +230,31 @@ namespace DocuDoctor.ViewController {
                 for (int j = box.Arrows.Count-1; j >= 0; j--) {
                     long i = box.Arrows[j].Item1;
                     int t = box.Arrows[j].Item2;
-                    if (d.TryGetValue(i, out UmlBox arrowEnd)) DrawArrow(canvas, (box.X, box.Y), (arrowEnd.X, arrowEnd.Y), t==1);
+                    if(d.TryGetValue(i, out UmlBox arrowEnd)) {
+                        
+                        // Find the shortest arrow between the two boxs
+                        Vector[] startPoints = box.ArrowPoints;
+                        Vector[] endPoints = arrowEnd.ArrowPoints;
+                        Vector start = startPoints[0];
+                        Vector end = endPoints[0];
+                        double length = (start-end).Length;
+                        for (int k = 0; k < startPoints.Length; k++) {
+                            Vector iStart = startPoints[k];
+                            for (int k2 = 0; k2 < endPoints.Length; k2++) {
+                                Vector iEnd = endPoints[k2];
+                                if ((iStart - iEnd).Length < length) {
+                                    start = iStart;
+                                    end = iEnd;
+                                    length = (iEnd - iStart).Length;
+                                }
+                            }
+                        }
+                        DrawArrow(canvas, ((float, float))(start.X, start.Y), ((float, float))(end.X, end.Y), t == 1);
+                    }
                     // The else block being hit means the arrows end pos does not exist anymore
                     // Therefore it should be removed from the list of arrows
-                    else box.Arrows.RemoveAt(j);
+                    else
+                        box.Arrows.RemoveAt(j);
                 }
             }
         }
