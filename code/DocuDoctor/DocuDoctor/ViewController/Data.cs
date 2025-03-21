@@ -91,7 +91,7 @@ namespace DocuDoctor.ViewController {
 
 
 
-        public bool ReadFile(string fileName)
+        public bool ReadFiles(string[] fileNames)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: ReadFile : Data                                       ::
         :: ---------------------------------------------------------------- ::
@@ -108,10 +108,15 @@ namespace DocuDoctor.ViewController {
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            Parser parser = new Parser(fileName);
             bool updatedBoxes = false;
+            List<UmlBox> boxes = new List<UmlBox>();
+            foreach(string fileName in fileNames) {
+                Parser parser = new Parser(fileName);
+                boxes.AddRange(parser.ParseFile());
+            }
+            
             float xOffset = 0;
-            foreach(UmlBox box in parser.ParseFile()) {
+            foreach(UmlBox box in boxes) {
                 CalculateWidthHeight(box);
                 box.X = xOffset+5;
                 xOffset += box.Width;
@@ -249,6 +254,7 @@ namespace DocuDoctor.ViewController {
                                 }
                             }
                         }
+
                         DrawArrow(canvas, ((float, float))(start.X, start.Y), ((float, float))(end.X, end.Y), t == 1);
                     }
                     // The else block being hit means the arrows end pos does not exist anymore

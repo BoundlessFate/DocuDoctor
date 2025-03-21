@@ -119,8 +119,9 @@ namespace DocuDoctor.ViewController
 
         private void FileButton_OnClick(object sender, RoutedEventArgs e) {
             OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Multiselect = true;
             openFileDialog.ShowDialog();
-            bool newBoxes = m_data.ReadFile(openFileDialog.FileName);
+            bool newBoxes = m_data.ReadFiles(openFileDialog.FileNames);
             if(newBoxes) {
                 UpdateProperties();
                 skCanvas.InvalidateVisual();

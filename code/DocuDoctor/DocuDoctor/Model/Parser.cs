@@ -55,6 +55,8 @@ namespace DocuDoctor.Model {
                 Regex stringsAndComments = new Regex("\"[\\S\\s]*?\"|'[\\S\\s]*?'|\\/\\*[\\S\\s]*?\\*\\/|\\/\\/.*?[\\n]");
 
                 Regex whiteSpace = new Regex("[ \t\n\r]+");
+                // Words that break parsing and are not expressed in the boxes so we get can rid of it
+                Regex conditionalInfo = new Regex(m_syntaxInfo.generateRemoveConditionalInfoCommand());
                 using(StreamReader sr = new StreamReader(m_file)) {
                     while(!sr.EndOfStream) {
                         string line = sr.ReadLine();
@@ -62,6 +64,7 @@ namespace DocuDoctor.Model {
                     }
                 }
                 fileContent = stringsAndComments.Replace(fileContent, " ");
+                fileContent = conditionalInfo.Replace(fileContent, " ");
                 fileContent = whiteSpace.Replace(fileContent, " ");
             } catch(Exception ex) {
                 if(ex is FileNotFoundException || ex is NullReferenceException) {
@@ -96,9 +99,9 @@ namespace DocuDoctor.Model {
         :: ---------------------------------------------------------------- ::
         :: 2. Author: Riley Horling                                         ::
         :: 3. Created: 2/10/2025                                            ::
-        :: 4. Purpose: Reads the file and scans for valid UML boxes::
+        :: 4. Purpose: Reads the file and scans for valid UML boxes         ::
         :: ---------------------------------------------------------------- ::
-        :: 6. Output Parameters: List of found uml boxes ::
+        :: 6. Output Parameters: List of found uml boxes                    ::
         :: 7. Preconditions: None                                           ::
         :: 8. Throws: None                                                  ::
         :: ---------------------------------------------------------------- ::
@@ -111,12 +114,12 @@ namespace DocuDoctor.Model {
             MatchCollection keywordChunks = findKeywords.Matches(fileContent);
 
             List<UmlBox> result = new List<UmlBox>();
-
+            Queue<KeyValuePair<long, string>> subtypePairs = new Queue<KeyValuePair<long, string>>();
             foreach(Match match in keywordChunks) {
                 //Assumes that the first thing in the list of matchs is a class as otherwise its real difficult to
                 // associate a method/var with a class
                 string chunk = match.Value;
-                if(chunk.Contains('=') || (chunk.Contains(';') && !chunk.Contains(')'))) {
+                if(m_syntaxInfo.isVar(chunk)) {
                     UmlVariable? temp = readVariable(chunk);
                     //Adds the found variable to the most recent UML box in the list
                     //should work for everthing except nested classes
@@ -126,8 +129,13 @@ namespace DocuDoctor.Model {
 
                 } else if(m_syntaxInfo.isObject(chunk)) {
                     UmlBox? classBox = readClass(chunk);
-                    if(classBox != null)
+                    if(classBox != null) {
                         result.Add(classBox);
+                        string subtype = readClassSubtype(chunk);
+                        if(subtype.Length > 0) { 
+                            subtypePairs.Enqueue( new KeyValuePair<long, string>(classBox.ID, subtype) );
+                        }
+                    }
                 } else if(m_syntaxInfo.isFunction(chunk)) {
                     //Adds the found variable to the most recent UML box in the list
                     //should work for everthing except nested classes
@@ -190,6 +198,7 @@ namespace DocuDoctor.Model {
             foreach(string keyword in m_syntaxInfo.objectKeywords) {
                 if(chunk.Contains(keyword)) {
                     chunk = chunk.Substring(chunk.IndexOf(keyword)).Trim();
+                    break;
                 }
             }
             if(chunk.Contains(m_syntaxInfo.functionEnding)) {
@@ -201,12 +210,26 @@ namespace DocuDoctor.Model {
             return null;
         }
 
+        private string readClassSubtype(string chunk) {
+            if(!chunk.Contains(m_syntaxInfo.subtype))
+                return "";
+            try {
+                string subtype = chunk.Substring(chunk.IndexOf(m_syntaxInfo.subtype) + 1);
+                subtype = subtype.Substring(0, subtype.LastIndexOf(m_syntaxInfo.objectEnding)).Trim();
+                return subtype;
+            } catch(Exception e) { return ""; }
+            
+        }
+
         public class Syntax {
             public string[] visibility;
             public string[] objectKeywords;
             public string objectEnding;
             public string varEnding;
             public string functionEnding;
+            public string subtype;
+            //These are things that break the parsing right now so we just remove them for now
+            public string[] trickyKeywords;
             //Should store Comment/string info
 
             public Syntax(Langague langague) {
@@ -214,10 +237,12 @@ namespace DocuDoctor.Model {
                 switch(langague) {
                     case Langague.Csharp:
                         visibility = ["private", "public", "protected"];
-                        objectKeywords = ["class"];
+                        objectKeywords = ["class", "interface"];
                         objectEnding = "{";
                         varEnding = ";";
                         functionEnding = ")";
+                        subtype = ":";
+                        trickyKeywords = ["static", "readonly", "override", "abstract"];
                         break;
                     default:
                         visibility = ["invalid"];
@@ -225,6 +250,8 @@ namespace DocuDoctor.Model {
                         objectEnding = "invalid";
                         varEnding = "invalid";
                         functionEnding = "invalid";
+                        subtype = "invalid";
+                        trickyKeywords = ["invalid"];
                         break;
                 }
 
@@ -260,6 +287,17 @@ namespace DocuDoctor.Model {
 
                 command += ").*?[";
                 command += objectEnding + varEnding + functionEnding + "]";
+                return command;
+            }
+
+            public string generateRemoveConditionalInfoCommand() {
+                string command = "(";
+                foreach(string item in trickyKeywords) {
+                    command += item + "|";
+                }
+                if(command.EndsWith('|'))
+                    command = command.Substring(0, command.Length - 1);
+                command += ")";
                 return command;
             }
 

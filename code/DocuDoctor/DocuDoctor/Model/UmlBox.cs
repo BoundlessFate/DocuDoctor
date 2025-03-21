@@ -10,7 +10,6 @@ namespace DocuDoctor.Model {
         // Type of box (class, template, interface)
         private string m_boxType;
         public string BoxType { get { return m_boxType; } set { m_boxType = value; } }
-
         // Current name of the box
         private string m_name;
         public string Name { get { return m_name; } set { m_name = value; } }
