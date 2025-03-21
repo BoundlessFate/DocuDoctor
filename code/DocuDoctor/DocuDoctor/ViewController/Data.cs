@@ -11,10 +11,11 @@ using SkiaSharp;
 
 namespace DocuDoctor.ViewController
 {
+    [Serializable]
     /// <summary>
     /// Holds all stored data for main window
     /// </summary>
-    internal class Data
+    public class Data
     {
         // Main list where uml boxes are stored in
         protected List<UmlBox> m_boxes;
@@ -55,6 +56,9 @@ namespace DocuDoctor.ViewController
         public float minY;
         public float maxY;
 
+        private string m_filePath;
+        public string FilePath { get { return m_filePath; } set { m_filePath = value; } }
+
         public Data()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: Data : Data                                           ::
@@ -68,14 +72,15 @@ namespace DocuDoctor.ViewController
             m_selectedForProperties = null;
             m_scale = (float)Screen.PrimaryScreen.Bounds.Width/1920; 
             m_translationX = 0; m_translationY = 0;
-            m_propertyTable = new DataTable();
-            m_methodTable = new DataTable();
-            m_parameterTable = new DataTable();
+            m_propertyTable = new DataTable("PropertyTable");
+            m_methodTable = new DataTable("MethodTable");
+            m_parameterTable = new DataTable("ParameterTable");
             methodSwitchDone = true;
             toolbarSelection = 0;
             m_exportPhoto = false;
             minX = 0; maxX = 1;
             minY = 0; maxY = 1;
+            m_filePath = "";
         }
 
         public UmlBox AddBox(SKPoint pos)
@@ -109,6 +114,10 @@ namespace DocuDoctor.ViewController
             m_selectedForProperties = box;
             m_boxes.Add(box);
             CalculateWidthHeight(box);
+            if (minX > pos.X) minX = pos.X;
+            if (minY > pos.Y) minY = pos.Y;
+            if (maxX < pos.X + box.Width) maxX = pos.X + box.Width;
+            if (maxY < pos.Y + box.Height) maxY = pos.Y + box.Height;
             return box;
         }
 
@@ -371,25 +380,6 @@ namespace DocuDoctor.ViewController
                 textY += lineHeight;
             }
             canvas.Restore();
-        }
-
-        public void CalculateTranslationScale(out float transX, out float transY, out float scale) {
-            float screenAspectRatio = (float)Screen.PrimaryScreen.Bounds.Width / (float)Screen.PrimaryScreen.Bounds.Height;
-            float w = maxX - minX;
-            float h = maxY - minY;
-            float sourceAspectRatio = w/h;
-
-            if (sourceAspectRatio >= screenAspectRatio) {
-                transX = minX;
-                transY = minY * w / h;
-                scale = (float)Screen.PrimaryScreen.Bounds.Width / w;
-
-            } else {
-                // Image is taller than screen
-                transX = minX * h / w;
-                transY = minY;
-                scale = (float)Screen.PrimaryScreen.Bounds.Height / h;
-            }
         }
     }
 }

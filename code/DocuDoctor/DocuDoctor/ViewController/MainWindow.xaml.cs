@@ -19,7 +19,10 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Shell;
 using System.Windows.Threading;
+using System.Xml;
+using System.Xml.Serialization;
 using DocuDoctor.Model;
+using Microsoft.Win32;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using SkiaSharp.Views.WPF;
@@ -668,6 +671,69 @@ namespace DocuDoctor.ViewController
             skCanvas.InvalidateVisual();
         }
 
+        private void ProjectFileButton_Click(object sender, RoutedEventArgs e) {
+            System.Windows.Controls.Button? button = sender as System.Windows.Controls.Button;
+            if (button != null && button.ContextMenu != null) {
+                button.ContextMenu.PlacementTarget = button; // Ensure the menu is positioned correctly
+                button.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom; // Place below button
+                button.ContextMenu.IsOpen = true; // Open the dropdown menu
+            }
+        }
+
+        private void LoadProject_Click(object sender, RoutedEventArgs e) {
+            // Create the file dialog
+            System.Windows.Forms.OpenFileDialog loadFileDialog = new System.Windows.Forms.OpenFileDialog();
+            loadFileDialog.Filter = "DD Files (*.dd)|*.dd";  // Filters to only show .dd files
+            loadFileDialog.DefaultExt = "dd";  // Default file extension
+            loadFileDialog.AddExtension = true; // Automatically add .dd extension if none is provided
+
+            // Show the save file dialog and check if the user selected a file
+            if (loadFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                string filePath = loadFileDialog.FileName;
+                // Check if the file exists
+                if (File.Exists(filePath)) {
+                    XmlSerializer serializer = new XmlSerializer(typeof(Data));
+                    // Read and deserialize the XML data
+                    using (StreamReader reader = new StreamReader(filePath)) {
+                        m_data = (Data)serializer.Deserialize(reader);
+                    }
+                    skCanvas.InvalidateVisual();
+                } else {
+                    System.Windows.Forms.MessageBox.Show("No saved data found!", "Load", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+        }
+
+        private void SaveProject_Click(object sender, RoutedEventArgs e) {
+            if (m_data.FilePath == "") SaveAs_Click(sender, e);
+            // Create an XmlSerializer instance
+            XmlSerializer serializer = new XmlSerializer(typeof(Data));
+
+            // Save the object to the file
+            using (StreamWriter writer = new StreamWriter(m_data.FilePath)) {
+                serializer.Serialize(writer, m_data);
+            }
+        }
+
+        private void SaveAs_Click(object sender, RoutedEventArgs e) {
+            // Create the file dialog
+            System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+            saveFileDialog.Filter = "DD Files (*.dd)|*.dd";  // Filters to only show .dd files
+            saveFileDialog.DefaultExt = "dd";  // Default file extension
+            saveFileDialog.AddExtension = true; // Automatically add .dd extension if none is provided
+
+            // Show the save file dialog and check if the user selected a file
+            if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                m_data.FilePath = saveFileDialog.FileName;
+                SaveProject_Click(sender, e);
+            }
+        }
+
+        private void ExportProject_Click(object sender, RoutedEventArgs e) {
+            m_data.ExportPhoto = true;
+            skCanvas.InvalidateVisual();
+        }
+
         private void buttonMinimize_Click(object sender, RoutedEventArgs e)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: buttonMinimize_Click : MainWindow                     ::
@@ -800,8 +866,6 @@ namespace DocuDoctor.ViewController
             ClearAllToolbarButtons();
             AddArrow.Background = new SolidColorBrush(Colors.Yellow);
             m_data.toolbarSelection = 5;
-            m_data.ExportPhoto = true;
-            skCanvas.InvalidateVisual();
         }
 
         private void buttonAddDottedArrow_Click(object sender, RoutedEventArgs e)
@@ -844,22 +908,20 @@ namespace DocuDoctor.ViewController
             }
         }
 
-        private void PrintPhoto(SKSurface s) {
+        private void PrintPhoto(SKSurface s)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: PrintPhoto : MainWindow                               ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Prints the current look of the canvas                ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
             m_data.ExportPhoto = false;
-            // To get the photo to look nice, zoom in and translate nicely, and then go back to how it was before
-            m_data.CalculateTranslationScale(out float transX, out float transY, out float scale);
-            float oldScale = m_data.Scale;
-            float oldTransX = m_data.TranslationX;
-            float oldTransY = m_data.TranslationY;
-            m_data.Scale = scale; m_data.TranslationX = transX; m_data.TranslationY = transY;
-            skCanvas.InvalidateVisual();
             SKImage image = s.Snapshot();
             SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
-            m_data.Scale = oldScale; m_data.TranslationX = oldTransX; m_data.TranslationY = oldTransY;
-            //skCanvas.InvalidateVisual();
             Dispatcher.CurrentDispatcher.InvokeAsync(() =>
             {
-                SaveFileDialog saveFileDialog = new SaveFileDialog {
+                System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog {
                     Filter = "PNG Image|*.png",
                     Title = "Save PNG File",
                     FileName = "output.png"
