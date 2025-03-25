@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Diagnostics;
 using DocuDoctor.Model;
 using SkiaSharp;
 
@@ -311,12 +312,14 @@ namespace DocuDoctor.ViewController {
         :: 3. Purpose: removes a box from the screen at defined point       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            float x = mPos.X;
-            float y = mPos.Y;
+            float x = mPos.X * m_dpiScale;
+            float y = mPos.Y * m_dpiScale;
             // Search backwards, so you move the topmost box (since topmost is inherently drawn last aka on top)
             for(int i = m_boxes.Count - 1; i >= 0; i--) {
                 UmlBox b = m_boxes[i];
-                if(b.X <= x && x < b.X + b.Width && b.Y <= y && y < b.Y + b.Height) {
+                Debug.WriteLine("clicked: " + x + " " + y);
+                Debug.WriteLine("Box: " + b.X + " " + b.Y);
+                if ((b.X <= x) && (x < (b.X + b.Width)) && (b.Y <= y) && (y < (b.Y + b.Height))) {
                     // Delete the topmost box at that position, aka, what is being acted on
                     m_boxes.RemoveAt(i);
                     m_selectedForProperties = null;
