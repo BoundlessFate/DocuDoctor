@@ -4,14 +4,17 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using System.Xml.Serialization;
 using DocuDoctor.Model;
+using Microsoft.VisualBasic.Devices;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
+using Mouse = System.Windows.Input.Mouse;
 namespace DocuDoctor.ViewController
 {
     /// <summary>
@@ -25,11 +28,10 @@ namespace DocuDoctor.ViewController
         private bool m_clicked;
         private bool m_updatingTable;
         // Variables used for canvas movement and scaling and object manipulation
-        private SKPoint m_lastMousePos;
-        private SKPoint m_initialMousePos;
+        private (float, float) m_initialMousePos;
+        private (float, float) m_lastMousePos;
         private float m_initialTransformX;
         private float m_initialTransformY;
-        private bool m_ctrlClicked;
 
         // Not actual data, but performance monitors so kept in frontend
         private PerformanceCounter cpuCounter;
@@ -49,18 +51,79 @@ namespace DocuDoctor.ViewController
             OnStartup();
             AddEvents();
             BindElements();
-            Loaded += MainWindow_Loaded;
         }
 
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        // The Following couple methods are meant to drastically simplify the code elsewhere
+        // They are helper functions which increase code clarity and reduce dependencies on arbitrary variables
+        //
+        // TLDR the values generated in these methods should not really be wrong
+        //      But if you still find troubles, look elsewhere
+        //
+        private bool IsControlPressed()
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: IsControlPressed : MainWindow                         ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Helper method which returns if controll is pressed   ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            //grabs the correct system dpi scale only after the window is loaded, otherwise it would not get the correct scale
-            PresentationSource source = PresentationSource.FromVisual(this);
-            float dpiScale = (float)(source?.CompositionTarget?.TransformToDevice.M11 ?? 1.0);
-
-            m_data.DpiScale = dpiScale;
-
+            return System.Windows.Input.Keyboard.IsKeyDown(Key.LeftCtrl) || System.Windows.Input.Keyboard.IsKeyDown(Key.RightCtrl);
         }
+
+        private (int,int) GetAbsoluteMousePos()
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: GetMousePos : MainWindow                              ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Gets absolute mouse position over entire system      ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
+            System.Drawing.Point screenPos = System.Windows.Forms.Cursor.Position;
+            return (screenPos.X, screenPos.Y);
+        }
+
+        private (int, int) GetMousePosRelWindow()
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: GetMousePos : MainWindow                              ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Gets relative mouse position over DocumentationDoctor::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
+            System.Windows.Point screenPos = Mouse.GetPosition(System.Windows.Application.Current.MainWindow);
+            return ((int)screenPos.X, (int)screenPos.Y);
+        }
+
+        private (int, int) GetMousePosRelSkia()
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: GetMousePos : MainWindow                              ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Gets relative mouse position over SkiaSharp          ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
+            System.Windows.Point screenPos = Mouse.GetPosition(skCanvas);
+            return ((int)screenPos.X, (int)screenPos.Y);
+        }
+
+        private (float, float) GetMousePosInSkiaCoords()
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: GetMousePos : MainWindow                              ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Gets mouse position in skia coordinates              ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
+            (int, int) mousePos = GetMousePosRelSkia();
+            float scaleX = (float)(skCanvas.CanvasSize.Width / skCanvas.ActualWidth);
+            float scaleY = (float)(skCanvas.CanvasSize.Height / skCanvas.ActualHeight);
+            scaleX /= m_data.Scale; scaleY /= m_data.Scale;
+            float skiaX = (float)(mousePos.Item1 * scaleX) + m_data.TranslationX;
+            float skiaY = (float)(mousePos.Item2 * scaleY) + m_data.TranslationY;
+            return (skiaX, skiaY);
+        }
+
+        // END OF HELPER METHODS
 
         private void BindElements()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -88,7 +151,6 @@ namespace DocuDoctor.ViewController
             skCanvas.MouseUp += SkCanvas_MouseUp;
             skCanvas.MouseWheel += SkCanvas_MouseWheel;
             KeyDown += Screen_KeyDown;
-            KeyUp += Screen_KeyUp;
 
         }
 
@@ -100,22 +162,8 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: handles events when you click keys in window         ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            if(e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl)
-                m_ctrlClicked = true;
-            if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)) && Keyboard.IsKeyDown(Key.P))
+            if (IsControlPressed() && System.Windows.Input.Keyboard.IsKeyDown(Key.P))
                 ExportProject_Click(sender, new RoutedEventArgs());
-        }
-
-        private void Screen_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
-        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        :: 1. Method: Screen_KeyUp : MainWindow                             ::
-        :: ---------------------------------------------------------------- ::
-        :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Purpose: handles events when you release keys in window       ::
-        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-        {
-            if(e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl)
-                m_ctrlClicked = false;
         }
 
         private void SkCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -127,9 +175,9 @@ namespace DocuDoctor.ViewController
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             float scaleFactor = 1.25f;
-            if(!m_ctrlClicked)
+            if(!IsControlPressed())
                 return;
-            System.Windows.Point curPos = e.GetPosition(skCanvas);
+            (float,float) curPos = GetMousePosInSkiaCoords();
             float oldScale = m_data.Scale;
             // Zoom in
             if (e.Delta > 0)
@@ -141,9 +189,9 @@ namespace DocuDoctor.ViewController
             {
                 m_data.Scale /= (scaleFactor);
             }
-            m_data.TranslationX = (float)(curPos.X - (curPos.X - m_data.TranslationX) * (m_data.Scale / oldScale));
-            m_data.TranslationY = (float)(curPos.Y - (curPos.Y - m_data.TranslationY) * (m_data.Scale / oldScale));
-            m_initialMousePos = new SKPoint((float)(curPos.X), (float)curPos.Y);
+            m_data.TranslationX = (float)(curPos.Item1 - (curPos.Item1 - m_data.TranslationX) * (m_data.Scale / oldScale));
+            m_data.TranslationY = (float)(curPos.Item2 - (curPos.Item2 - m_data.TranslationY) * (m_data.Scale / oldScale));
+            m_initialMousePos = curPos;
             m_initialTransformX = m_data.TranslationX;
             m_initialTransformY = m_data.TranslationY;
             skCanvas.InvalidateVisual();
@@ -169,21 +217,16 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: handles events when you move mouse in skcanvas       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-
+            Debug.WriteLine(GetMousePosInSkiaCoords());
             if (!m_clicked || m_data.toolbarSelection != 0) return;
             else if (m_clicked && e.MouseDevice.LeftButton == MouseButtonState.Released) { m_clicked = false; return; }
-            System.Windows.Point mPos = e.GetPosition(skCanvas);
-            mPos.X -= m_data.TranslationX;
-            mPos.X /= m_data.Scale;
-            mPos.Y -= m_data.TranslationY;
-            mPos.Y /= m_data.Scale;
-            SKPoint curMousePos = new SKPoint((float)mPos.X, (float)mPos.Y);
-            float deltaX = curMousePos.X - m_lastMousePos.X;
-            float deltaY = curMousePos.Y - m_lastMousePos.Y;
-            if(!m_data.MoveBox(m_lastMousePos.X, m_lastMousePos.Y, deltaX, deltaY) && m_ctrlClicked) {
+            (float, float) curMousePos = GetMousePosInSkiaCoords();
+            float deltaX = curMousePos.Item1 - m_lastMousePos.Item1;
+            float deltaY = curMousePos.Item2 - m_lastMousePos.Item2;
+            if(!m_data.MoveBox(m_lastMousePos.Item1, m_lastMousePos.Item2, deltaX, deltaY) && IsControlPressed()) {
                 System.Windows.Point curPos = e.GetPosition(skCanvas);
-                m_data.TranslationX = m_initialTransformX + ((float)curPos.X - m_initialMousePos.X) / m_data.Scale;
-                m_data.TranslationY = m_initialTransformY + ((float)curPos.Y - m_initialMousePos.Y) / m_data.Scale;
+                m_data.TranslationX = m_initialTransformX + ((float)curPos.X - m_initialMousePos.Item1) / m_data.Scale;
+                m_data.TranslationY = m_initialTransformY + ((float)curPos.Y - m_initialMousePos.Item2) / m_data.Scale;
             }
             UpdateProperties();
             skCanvas.InvalidateVisual();
@@ -198,48 +241,44 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: handles events when you click mouse in skcanvas      ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            System.Windows.Point mPos = e.GetPosition(skCanvas);
-            mPos.X -= m_data.TranslationX;
-            mPos.X /= m_data.Scale;
-            mPos.Y -= m_data.TranslationY;
-            mPos.Y /= m_data.Scale;
-            SKPoint internalPos = new((float)mPos.X, (float)mPos.Y);
+            (float, float) mPos = GetMousePosInSkiaCoords();
+            SKPoint mPosSkia = new SKPoint(mPos.Item1, mPos.Item2);
 
             if (e.LeftButton == MouseButtonState.Pressed) {
                 switch (m_data.toolbarSelection) {
                     case 1:
-                        m_data.RemoveBox(internalPos);
+                        m_data.RemoveBox(mPosSkia);
                         skCanvas.InvalidateVisual();
                         UpdateProperties();
                         break;
                     case 2:
-                        m_data.AddBox(internalPos, "Class");
+                        m_data.AddBox(mPosSkia, "Class");
                         skCanvas.InvalidateVisual();
                         UpdateProperties();
                         break;
                     case 3:
-                        m_data.AddBox(internalPos, "Interface");
+                        m_data.AddBox(mPosSkia, "Interface");
                         skCanvas.InvalidateVisual();
                         UpdateProperties();
                         break;
                     case 4:
-                        m_data.AddBox(internalPos, "Template");
+                        m_data.AddBox(mPosSkia, "Template");
                         skCanvas.InvalidateVisual();
                         UpdateProperties();
                         break;
                     case 5:
-                        m_data.AddArrow((float)mPos.X, (float)mPos.Y, 0);
+                        m_data.AddArrow(mPos.Item1, mPos.Item2, 0);
                         skCanvas.InvalidateVisual();
                         break;
                     case 6:
-                        m_data.AddArrow((float)mPos.X, (float)mPos.Y, 1);
+                        m_data.AddArrow(mPos.Item1, mPos.Item2, 1);
                         skCanvas.InvalidateVisual();
                         break;
                 }
             }
             if (e.LeftButton == MouseButtonState.Released) return;
-            m_lastMousePos = internalPos;
-            m_initialMousePos = internalPos;
+            m_lastMousePos = mPos;
+            m_initialMousePos = mPos;
             m_initialTransformX = m_data.TranslationX;
             m_initialTransformY = m_data.TranslationY;
             m_clicked = true;
@@ -284,7 +323,6 @@ namespace DocuDoctor.ViewController
             WindowState = WindowState.Maximized;
             WindowStyle = WindowStyle.ThreeDBorderWindow;
             ResizeMode = ResizeMode.CanResize;
-            m_ctrlClicked = false;
             ResetProperties();
             InitResourceMonitors();
         }
