@@ -368,6 +368,29 @@ namespace DocuDoctor.ViewController {
             box.Width = maxWidth + 20; box.Height = totalHeight + 20;
         }
 
+        public void SelectBox(SKPoint mPos)
+        {
+            float x = mPos.X * m_dpiScale;
+            float y = mPos.Y * m_dpiScale;
+            // Search backwards, so you select the topmost box (since topmost is inherently drawn last aka on top)
+            for (int i = m_boxes.Count - 1; i >= 0; i--)
+            {
+                UmlBox b = m_boxes[i];
+                Debug.WriteLine("clicked: " + x + " " + y);
+                Debug.WriteLine("Box: " + b.X + " " + b.Y);
+                if ((b.X <= x) && (x < (b.X + b.Width)) && (b.Y <= y) && (y < (b.Y + b.Height)))
+                {
+
+                    m_boxes.RemoveAt(i);
+                    m_boxes.Add(b);
+                    // Select the topmost box at that position, aka, what is being acted on
+                    m_selectedForProperties = b;
+                    SelectedForProperties = b;
+                    return;
+                }
+            }
+        }
+
         private void DisplayBox(UmlBox box, SKCanvas canvas)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: DisplayBox : Data                                     ::

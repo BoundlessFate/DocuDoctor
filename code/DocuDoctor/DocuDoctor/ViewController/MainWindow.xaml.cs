@@ -229,6 +229,11 @@ namespace DocuDoctor.ViewController
 
             if (e.LeftButton == MouseButtonState.Pressed) {
                 switch (m_data.toolbarSelection) {
+                    case 0:
+                        m_data.SelectBox(internalPos);
+                        skCanvas.InvalidateVisual();
+                        UpdateProperties();
+                        break;
                     case 1:
                         m_data.RemoveBox(internalPos);
                         skCanvas.InvalidateVisual();
