@@ -1,10 +1,5 @@
 using System.Data;
 using System.Windows;
-<<<<<<< HEAD
-=======
-using System.Windows.Controls;
-using System.Diagnostics;
->>>>>>> 78bfbf3a28c6a1091ff111d60e6a9788e30a2b0e
 using DocuDoctor.Model;
 using SkiaSharp;
 
@@ -340,8 +335,6 @@ namespace DocuDoctor.ViewController
             // Search backwards, so you move the topmost box (since topmost is inherently drawn last aka on top)
             for(int i = m_boxes.Count - 1; i >= 0; i--) {
                 UmlBox b = m_boxes[i];
-                Debug.WriteLine("clicked: " + x + " " + y);
-                Debug.WriteLine("Box: " + b.X + " " + b.Y);
                 if ((b.X <= x) && (x < (b.X + b.Width)) && (b.Y <= y) && (y < (b.Y + b.Height))) {
                     // Delete the topmost box at that position, aka, what is being acted on
                     m_boxes.RemoveAt(i);
@@ -399,11 +392,9 @@ namespace DocuDoctor.ViewController
             for (int i = m_boxes.Count - 1; i >= 0; i--)
             {
                 UmlBox b = m_boxes[i];
-                Debug.WriteLine("clicked: " + x + " " + y);
-                Debug.WriteLine("Box: " + b.X + " " + b.Y);
                 if ((b.X <= x) && (x < (b.X + b.Width)) && (b.Y <= y) && (y < (b.Y + b.Height)))
                 {
-
+                    // Move selected box to top
                     m_boxes.RemoveAt(i);
                     m_boxes.Add(b);
                     // Select the topmost box at that position, aka, what is being acted on
