@@ -11,6 +11,7 @@ namespace DocuDoctor.Model {
         private string m_file;
         private string[] m_keywords;
         private Syntax m_syntaxInfo;
+        private Langague m_lang;
 
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: Parser : Parser                                       ::
@@ -27,7 +28,8 @@ namespace DocuDoctor.Model {
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         public Parser(String fileName) { //comment
             m_file = fileName;
-            m_syntaxInfo = new Syntax(fileLangagueParser(fileName));
+            m_lang = fileLangagueParser(fileName);
+            m_syntaxInfo = new Syntax(m_lang);
         }
 
 
@@ -110,6 +112,8 @@ namespace DocuDoctor.Model {
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         public List<UmlBox> ParseFile(Queue<KeyValuePair<long, string>> subtypePairs) {
+            if(m_lang == Langague.Invalid)
+                return new();
             string fileContent = readFile();
             //Scans for keywords like class and private and takes everything up to the line ender
             Regex findKeywords = new Regex(m_syntaxInfo.generateKeywordRegexCommand());//new Regex("(private |public |class |protected ).*?[);{]");
