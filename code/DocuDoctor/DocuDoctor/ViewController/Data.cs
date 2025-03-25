@@ -1,21 +1,21 @@
-
-﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
+<<<<<<< HEAD
+=======
 using System.Windows.Controls;
 using System.Diagnostics;
+>>>>>>> 78bfbf3a28c6a1091ff111d60e6a9788e30a2b0e
 using DocuDoctor.Model;
 using SkiaSharp;
 
-namespace DocuDoctor.ViewController {
+namespace DocuDoctor.ViewController
+{
+    [Serializable]
     /// <summary>
     /// Holds all stored data for main window
     /// </summary>
-    internal class Data {
+    public class Data
+    {
         // Main list where uml boxes are stored in
         protected List<UmlBox> m_boxes;
         public List<UmlBox> Boxes { get { return m_boxes; } }
@@ -54,6 +54,17 @@ namespace DocuDoctor.ViewController {
         public bool methodSwitchDone;
         // Current button selected on toolbar, kept as an id 0-x
         public int toolbarSelection;
+        // Boolean used for frontend to determine when to print
+        private bool m_exportPhoto;
+        public bool ExportPhoto { get { return m_exportPhoto; } set { m_exportPhoto = value; } }
+        // Values used to scale the output photo
+        public float minX;
+        public float maxX;
+        public float minY;
+        public float maxY;
+
+        private string m_filePath;
+        public string FilePath { get { return m_filePath; } set { m_filePath = value; } }
 
         public Data()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -68,11 +79,15 @@ namespace DocuDoctor.ViewController {
             m_selectedForProperties = null;
             m_scale = (float)Screen.PrimaryScreen.Bounds.Width/1920; 
             m_translationX = 0; m_translationY = 0;
-            m_propertyTable = new DataTable();
-            m_methodTable = new DataTable();
-            m_parameterTable = new DataTable();
+            m_propertyTable = new DataTable("PropertyTable");
+            m_methodTable = new DataTable("MethodTable");
+            m_parameterTable = new DataTable("ParameterTable");
             methodSwitchDone = true;
             toolbarSelection = 0;
+            m_exportPhoto = false;
+            minX = 0; maxX = 1;
+            minY = 0; maxY = 1;
+            m_filePath = "";
         }
 
         public UmlBox AddBox(SKPoint pos)
@@ -87,6 +102,10 @@ namespace DocuDoctor.ViewController {
             m_selectedForProperties = box;
             m_boxes.Add(box);
             CalculateWidthHeight(box);
+            if (minX > pos.X) minX = pos.X;
+            if (minY > pos.Y) minY = pos.Y;
+            if (maxX < pos.X + box.Width) maxX = pos.X + box.Width;
+            if (maxY < pos.Y + box.Height) maxY = pos.Y + box.Height;
             return box;
         }
 
@@ -142,6 +161,10 @@ namespace DocuDoctor.ViewController {
             m_selectedForProperties = box;
             m_boxes.Add(box);
             CalculateWidthHeight(box);
+            if (minX > pos.X) minX = pos.X;
+            if (minY > pos.Y) minY = pos.Y;
+            if (maxX < pos.X + box.Width) maxX = pos.X + box.Width;
+            if (maxY < pos.Y + box.Height) maxY = pos.Y + box.Height;
             return box;
         }
 

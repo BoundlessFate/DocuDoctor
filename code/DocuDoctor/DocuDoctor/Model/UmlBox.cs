@@ -1,5 +1,3 @@
-﻿using System.Numerics;
-
 namespace DocuDoctor.Model {
     /// <summary>
     /// Container Object For UML Items (aka Classes, Templates, Interfaces)
@@ -45,6 +43,15 @@ namespace DocuDoctor.Model {
 
         private List<(long, int)> m_arrows;
         public List<(long, int)> Arrows { get { return m_arrows; } }
+
+        public UmlBox() {
+            m_variables = []; m_methods = [];
+            m_width = 0; m_height = 1;
+            // Initialize a random id to show which 
+            Random rnd = new Random();
+            m_id = rnd.NextInt64();
+            m_arrows = new List<(long, int)>();
+        }
 
         public UmlBox(string type, string name, int x, int y)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

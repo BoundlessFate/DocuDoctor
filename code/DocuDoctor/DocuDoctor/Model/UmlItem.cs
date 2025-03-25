@@ -22,6 +22,7 @@
         protected string m_name;
         public string Name { get { return m_name; } set { m_name = value; } }
 
+        public UmlVariable() { }
         public UmlVariable(string protection, string type, string name)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: UmlVariable : UmlVariable                             ::
@@ -60,6 +61,9 @@
         protected List<UmlVariable> m_parameters;
         public List<UmlVariable> Parameters { get { return m_parameters; } set { m_parameters = value; } }
 
+        public UmlMethod() {
+            m_parameters = [];
+        }
         public UmlMethod(string protection, string returnType, string name, List<List<String>> parameters) : base(protection, returnType, name)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: UmlMethod : UmlMethod                                 ::
