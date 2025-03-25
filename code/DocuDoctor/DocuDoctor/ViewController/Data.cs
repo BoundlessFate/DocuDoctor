@@ -110,9 +110,10 @@ namespace DocuDoctor.ViewController {
         {
             bool updatedBoxes = false;
             List<UmlBox> boxes = new List<UmlBox>();
+            Queue<KeyValuePair<long, string>> subtypePairs = new();
             foreach(string fileName in fileNames) {
                 Parser parser = new Parser(fileName);
-                boxes.AddRange(parser.ParseFile());
+                boxes.AddRange(parser.ParseFile(subtypePairs));
             }
             
             float xOffset = 0;
@@ -124,6 +125,13 @@ namespace DocuDoctor.ViewController {
 
                 updatedBoxes = true;
                 m_selectedForProperties = box;
+            }
+            while(subtypePairs.Count > 0) {
+                KeyValuePair<long, string> nameIdPair = subtypePairs.Dequeue();
+                UmlBox? source = FindBoxFromID(BoxNameToBoxID(nameIdPair.Value));
+                if(source != null) {
+                    source.AddArrow(nameIdPair.Key, 0);
+                }
             }
             return updatedBoxes;
         }
@@ -285,6 +293,28 @@ namespace DocuDoctor.ViewController {
             // Return if first and second box are the same
             if (selectedBox.ID == SelectedForProperties.ID) return;
             SelectedForProperties.AddArrow(selectedBox.ID, arrowType);
+        }
+
+        public long BoxNameToBoxID(string boxName)
+           /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+           :: 1. Method: BoxNameToBoxID : Data                                 ::
+           :: ---------------------------------------------------------------- ::
+           :: 2. Author: Riley Horling                                         ::
+           :: 3. Purpose: Finds a if a box with the inputed name exists returns::
+           ::    -1 if it doesnt                                               ::
+           ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
+            foreach(UmlBox b in m_boxes) {
+                if(b.Name.ToLower() == boxName.ToLower()) return b.ID;
+            }
+            return -1;
+        }
+
+        private UmlBox? FindBoxFromID(long id) {
+            foreach(UmlBox b in m_boxes) {
+                if(b.ID == id) return b;
+            }
+            return null;
         }
 
         public bool MoveBox(float x, float y, float deltaX, float deltaY)

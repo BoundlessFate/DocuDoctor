@@ -107,14 +107,13 @@ namespace DocuDoctor.Model {
         :: ---------------------------------------------------------------- ::
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-        public List<UmlBox> ParseFile() {
+        public List<UmlBox> ParseFile(Queue<KeyValuePair<long, string>> subtypePairs) {
             string fileContent = readFile();
             //Scans for keywords like class and private and takes everything up to the line ender
             Regex findKeywords = new Regex(m_syntaxInfo.generateKeywordRegexCommand());//new Regex("(private |public |class |protected ).*?[);{]");
             MatchCollection keywordChunks = findKeywords.Matches(fileContent);
 
             List<UmlBox> result = new List<UmlBox>();
-            Queue<KeyValuePair<long, string>> subtypePairs = new Queue<KeyValuePair<long, string>>();
             foreach(Match match in keywordChunks) {
                 //Assumes that the first thing in the list of matchs is a class as otherwise its real difficult to
                 // associate a method/var with a class
