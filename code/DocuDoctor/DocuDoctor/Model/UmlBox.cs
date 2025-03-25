@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -5,18 +6,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+=======
+﻿using System.Numerics;
+>>>>>>> main
 
-namespace DocuDoctor.Model
-{
+namespace DocuDoctor.Model {
     /// <summary>
     /// Container Object For UML Items (aka Classes, Templates, Interfaces)
     /// </summary>
+
     public class UmlBox
     {
         // Type of box (class, template, interface)
         private string m_boxType;
         public string BoxType { get { return m_boxType; } set { m_boxType = value; } }
-
         // Current name of the box
         private string m_name;
         public string Name { get { return m_name; } set { m_name = value; } }
@@ -26,7 +29,8 @@ namespace DocuDoctor.Model
         public List<UmlVariable> Variables { get { return m_variables; } }
         // List of methods that the container type contains
         private List<UmlMethod> m_methods;
-        public List<UmlMethod> Methods { get { return m_methods; } }
+        public List<UmlMethod> Methods { get { 
+                return m_methods; } }
 
         // variables used and stored for display on refresh of screen
         private float m_x;
@@ -37,6 +41,12 @@ namespace DocuDoctor.Model
         public float Width { get { return m_width; } set { m_width = value; } }
         private float m_height;
         public float Height { get { return m_height; } set { m_height = value; } }
+
+        public System.Windows.Vector Top { get { return new System.Windows.Vector(m_x + (m_width / 2), m_y); } }
+        public System.Windows.Vector Left { get { return new System.Windows.Vector(m_x, m_y+(m_height / 2)); } }
+        public System.Windows.Vector Bottom { get { return new System.Windows.Vector(m_x + (m_width / 2), m_y+m_height); } }
+        public System.Windows.Vector Right { get { return new System.Windows.Vector(m_x+m_width, m_y + (m_height / 2)); } }
+        public System.Windows.Vector[] ArrowPoints { get { return [Top, Bottom, Left, Right]; } }
 
         // Id will be randomized and assinged on initialize.
         // By using a long, the chance of a collision is as close to 0 as imaginable
@@ -63,6 +73,7 @@ namespace DocuDoctor.Model
         :: 3. Purpose: Initializer for UML Boxes                            ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
+
             m_boxType = type; m_name = name; m_variables = []; m_methods = [];
             m_x = x; m_y = y; m_width = 0; m_height = 1;
             // Initialize a random id to show which 
@@ -80,6 +91,14 @@ namespace DocuDoctor.Model
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             m_methods.Add(new UmlMethod(protection, returnType, name, parameters));
+        }
+
+        public void AddMethod(UmlMethod newMethod) {
+            m_methods.Add(newMethod);
+        }
+
+        public void AddVariable(UmlVariable newVariable) {
+            m_variables.Add(newVariable);
         }
 
         public void AddVariable(string protection, string type, string name)
@@ -107,6 +126,8 @@ namespace DocuDoctor.Model
             }
             m_arrows.Add((id, type));
         }
+
+
 
         public override string ToString()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

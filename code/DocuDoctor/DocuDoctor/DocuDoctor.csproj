@@ -15,6 +15,7 @@
     <None Remove="assets\AddTemplate.png" />
     <None Remove="assets\arrow.png" />
     <None Remove="assets\close.png" />
+    <None Remove="assets\Docudoctor.ico" />
     <None Remove="assets\Deselect.png" />
     <None Remove="assets\DocumentationDoctor.ico" />
     <None Remove="assets\DocumentationDoctor.png" />
@@ -45,9 +46,8 @@
     <Resource Include="assets\AddTemplate.png" />
     <Resource Include="assets\arrow.png" />
     <Resource Include="assets\close.png" />
+    <Resource Include="assets\Docudoctor.ico" />
     <Resource Include="assets\Deselect.png" />
-    <Resource Include="assets\DocumentationDoctor.ico" />
-    <Resource Include="assets\DocumentationDoctor.png" />
     <Resource Include="assets\dottedarrow.png" />
     <Resource Include="assets\EraseItem.png" />
     <Resource Include="assets\maximize.png" />

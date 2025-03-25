@@ -1,20 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using Accessibility;
-
-namespace DocuDoctor.Model
-{
+﻿namespace DocuDoctor.Model {
     /// <summary>
     /// Common interface for variables and general items
     /// </summary>
-    public interface UmlItem
-    {
+    public interface UmlItem {
         public string Protection { get; set; }
         public string Type { get; set; }
         public string Name { get; set; }
@@ -23,6 +11,7 @@ namespace DocuDoctor.Model
     /// <summary>
     /// Data object for variables
     /// </summary>
+
     public class UmlVariable : UmlItem
     {
         // Variables used for store and display of variable items
@@ -42,8 +31,11 @@ namespace DocuDoctor.Model
         :: 3. Purpose: Initializer for variables                            ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            m_protection = protection; m_type = type; m_name = name;
+            m_protection = protection;
+            m_type = type;
+            m_name = name;
         }
+
 
         public override string ToString()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -53,7 +45,8 @@ namespace DocuDoctor.Model
         :: 3. Purpose: Overrides ToString allowing for easier display       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            if (m_protection.Equals("")) return m_type + " " + m_name;
+            if(m_protection.Equals(""))
+                return m_type + " " + m_name;
             return m_protection + " " + m_type + " " + m_name;
         }
     }
@@ -61,6 +54,7 @@ namespace DocuDoctor.Model
     /// <summary>
     /// Data object for methods
     /// </summary>
+
     public class UmlMethod : UmlVariable
     {
         // Variables used for store and display of method items
@@ -79,22 +73,25 @@ namespace DocuDoctor.Model
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             m_parameters = [];
-            try
-            {
-                foreach (List<String> param in parameters) {
-                    if (param.Count != 2) throw new Exception("parameter does not have the right num of arguments");
-                    foreach (string str in param) {
-                        if (str.Equals(null) || str.Equals("")) throw new Exception("parameter value cannot be null or empty");
+            try {
+                foreach(List<String> param in parameters) {
+                    if(param.Count != 2)
+                        throw new Exception("parameter does not have the right num of arguments");
+                    foreach(string str in param) {
+                        if(str.Equals(null) || str.Equals(""))
+                            throw new Exception("parameter value cannot be null or empty");
                     }
                 }
-                foreach (List<String> param in parameters)
-                {
+                foreach(List<String> param in parameters) {
                     m_parameters.Add(new UmlVariable("", (string)param[0]!, (string)param[1]!));
                 }
-            }
-            catch (Exception ex) {
+            } catch(Exception ex) {
                 Console.WriteLine(ex.Message, ex.StackTrace);
             }
+        }
+
+        public UmlMethod(string protection, string returnType, string name, List<UmlVariable> parameters) : base(protection, returnType, name) {
+            m_parameters = parameters;
         }
 
         public override string ToString()
@@ -105,6 +102,7 @@ namespace DocuDoctor.Model
         :: 3. Purpose: Overrides ToString allowing for easier display       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
+
             string str = m_protection + " " + m_type + " " + m_name + "(";
             for (int i = 0; i < m_parameters.Count; i++) {
                 if (i != 0) str += ", ";
