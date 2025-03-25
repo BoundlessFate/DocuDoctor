@@ -1,33 +1,17 @@
 
-﻿using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
-using System.Diagnostics.Eventing.Reader;
-using System.Diagnostics.Metrics;
 using System.IO;
-using System.Runtime.InteropServices.Marshalling;
-using System.Text;
 using System.Windows;
-using System.Windows.Automation.Peers;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Windows.Shell;
 using System.Windows.Threading;
-using System.Xml;
 using System.Xml.Serialization;
 using DocuDoctor.Model;
-using Microsoft.Win32;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
-using SkiaSharp.Views.WPF;
 namespace DocuDoctor.ViewController
 {
     /// <summary>
@@ -105,7 +89,6 @@ namespace DocuDoctor.ViewController
             skCanvas.MouseWheel += SkCanvas_MouseWheel;
             KeyDown += Screen_KeyDown;
             KeyUp += Screen_KeyUp;
-            fileButton.Click += FileButton_OnClick;
 
         }
 
@@ -119,17 +102,8 @@ namespace DocuDoctor.ViewController
         {
             if(e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl)
                 m_ctrlClicked = true;
-        }
-
-        private void FileButton_OnClick(object sender, RoutedEventArgs e) {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Multiselect = true;
-            openFileDialog.ShowDialog();
-            bool newBoxes = m_data.ReadFiles(openFileDialog.FileNames);
-            if(newBoxes) {
-                UpdateProperties();
-                skCanvas.InvalidateVisual();
-            }
+            if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)) && Keyboard.IsKeyDown(Key.P))
+                ExportProject_Click(sender, new RoutedEventArgs());
         }
 
         private void Screen_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
@@ -749,7 +723,14 @@ namespace DocuDoctor.ViewController
             }
         }
 
-        private void SaveProject_Click(object sender, RoutedEventArgs e) {
+        private void SaveProject_Click(object sender, RoutedEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: SaveProject_Click : MainWindow                        ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Action for saving project                            ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
             if (m_data.FilePath == "") SaveAs_Click(sender, e);
             // Create an XmlSerializer instance
             XmlSerializer serializer = new XmlSerializer(typeof(Data));
@@ -760,7 +741,14 @@ namespace DocuDoctor.ViewController
             }
         }
 
-        private void SaveAs_Click(object sender, RoutedEventArgs e) {
+        private void SaveAs_Click(object sender, RoutedEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: SaveAs_Click : MainWindow                             ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: when requested or on first save, ask for subdirectory::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
             // Create the file dialog
             System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             saveFileDialog.Filter = "DD Files (*.dd)|*.dd";  // Filters to only show .dd files
@@ -774,9 +762,34 @@ namespace DocuDoctor.ViewController
             }
         }
 
-        private void ExportProject_Click(object sender, RoutedEventArgs e) {
+        private void ExportProject_Click(object sender, RoutedEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: ExportProject_Click : MainWindow                      ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Starts up snapshot of skia sharp canvas              ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
             m_data.ExportPhoto = true;
             skCanvas.InvalidateVisual();
+        }
+
+        private void ImportButton_Click(object sender, RoutedEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: ImportButton_Click : MainWindow                       ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Riley Horling                                         ::
+        :: 3. Purpose: Imports file and parses into program                 ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
+            System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog();
+            openFileDialog.Multiselect = true;
+            openFileDialog.ShowDialog();
+            bool newBoxes = m_data.ReadFiles(openFileDialog.FileNames);
+            if (newBoxes) {
+                UpdateProperties();
+                skCanvas.InvalidateVisual();
+            }
         }
 
         private void buttonMinimize_Click(object sender, RoutedEventArgs e)

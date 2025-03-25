@@ -1,17 +1,8 @@
-
-﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using DocuDoctor.Model;
 using SkiaSharp;
 
-<<<<<<< HEAD
 namespace DocuDoctor.ViewController
 {
     [Serializable]
@@ -20,13 +11,6 @@ namespace DocuDoctor.ViewController
     /// </summary>
     public class Data
     {
-=======
-namespace DocuDoctor.ViewController {
-    /// <summary>
-    /// Holds all stored data for main window
-    /// </summary>
-    internal class Data {
->>>>>>> main
         // Main list where uml boxes are stored in
         protected List<UmlBox> m_boxes;
         public List<UmlBox> Boxes { get { return m_boxes; } }
