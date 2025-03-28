@@ -11,6 +11,7 @@ namespace DocuDoctor.Model {
         private string m_file;
         private string[] m_keywords;
         private Syntax m_syntaxInfo;
+        private Langague m_lang;
 
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: Parser : Parser                                       ::
@@ -27,7 +28,8 @@ namespace DocuDoctor.Model {
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         public Parser(String fileName) { //comment
             m_file = fileName;
-            m_syntaxInfo = new Syntax(fileLangagueParser(fileName));
+            m_lang = fileLangagueParser(fileName);
+            m_syntaxInfo = new Syntax(m_lang);
         }
 
 
@@ -82,6 +84,8 @@ namespace DocuDoctor.Model {
                 switch(ending) {
                     case ".cs":
                         return Langague.Csharp;
+                    case ".java":
+                        return Langague.Java;
                     default:
                         return Langague.Invalid;
                 }
@@ -107,44 +111,50 @@ namespace DocuDoctor.Model {
         :: ---------------------------------------------------------------- ::
         :: 9. Modifications: None                                           ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-        public List<UmlBox> ParseFile() {
+        public List<UmlBox> ParseFile(Queue<KeyValuePair<long, string>> subtypePairs) {
+            if(m_lang == Langague.Invalid)
+                return new();
             string fileContent = readFile();
             //Scans for keywords like class and private and takes everything up to the line ender
             Regex findKeywords = new Regex(m_syntaxInfo.generateKeywordRegexCommand());//new Regex("(private |public |class |protected ).*?[);{]");
             MatchCollection keywordChunks = findKeywords.Matches(fileContent);
 
             List<UmlBox> result = new List<UmlBox>();
-            Queue<KeyValuePair<long, string>> subtypePairs = new Queue<KeyValuePair<long, string>>();
             foreach(Match match in keywordChunks) {
                 //Assumes that the first thing in the list of matchs is a class as otherwise its real difficult to
                 // associate a method/var with a class
                 string chunk = match.Value;
-                if(m_syntaxInfo.isVar(chunk)) {
-                    UmlVariable? temp = readVariable(chunk);
-                    //Adds the found variable to the most recent UML box in the list
-                    //should work for everthing except nested classes
-                    if(temp != null && result.Count > 0 && result[result.Count - 1] != null) {
-                        result[result.Count - 1].AddVariable(temp);
-                    }
-
-                } else if(m_syntaxInfo.isObject(chunk)) {
-                    UmlBox? classBox = readClass(chunk);
-                    if(classBox != null) {
-                        result.Add(classBox);
-                        string subtype = readClassSubtype(chunk);
-                        if(subtype.Length > 0) { 
-                            subtypePairs.Enqueue( new KeyValuePair<long, string>(classBox.ID, subtype) );
+                Syntax.DataType type = m_syntaxInfo.chunkType(chunk);
+                switch(type) {
+                    case Syntax.DataType.Variable:
+                        UmlVariable? temp = readVariable(chunk);
+                        //Adds the found variable to the most recent UML box in the list
+                        //should work for everthing except nested classes
+                        if(temp != null && result.Count > 0 && result[result.Count - 1] != null) {
+                            result[result.Count - 1].AddVariable(temp);
                         }
-                    }
-                } else if(m_syntaxInfo.isFunction(chunk)) {
-                    //Adds the found variable to the most recent UML box in the list
-                    //should work for everthing except nested classes
-                    UmlMethod? method = readMethod(chunk);
-                    if(method != null && result.Count > 0 && result[result.Count - 1] != null) {
-                        result[result.Count - 1].AddMethod(method);
-                    }
-
-                }
+                        break;
+                    case Syntax.DataType.Class:
+                        UmlBox? classBox = readClass(chunk);
+                        if(classBox != null) {
+                            result.Add(classBox);
+                            string subtype = readClassSubtype(chunk);
+                            if(subtype.Length > 0) {
+                                subtypePairs.Enqueue(new KeyValuePair<long, string>(classBox.ID, subtype));
+                            }
+                        }
+                        break;
+                    case Syntax.DataType.Method:
+                        //Adds the found variable to the most recent UML box in the list
+                        //should work for everthing except nested classes
+                        UmlMethod? method = readMethod(chunk);
+                        if(method != null && result.Count > 0 && result[result.Count - 1] != null) {
+                            result[result.Count - 1].AddMethod(method);
+                        }
+                        break;
+                    case Syntax.DataType.Invalid:
+                        break;
+                } 
             }
             return result;
         }
@@ -205,8 +215,12 @@ namespace DocuDoctor.Model {
                 chunk = chunk.Remove(chunk.LastIndexOf(m_syntaxInfo.functionEnding)).Trim();
             }
             string[] keywords = chunk.Split(" ");
-            if(keywords.Length >= 2)
+            if(keywords.Length >= 2) {
+                string temp = keywords[0];
+                temp = char.ToUpper(temp[0]) + temp.Substring(1);
+                keywords[0] = temp;
                 return new UmlBox(keywords[0], keywords[1], 0, 0);
+            }
             return null;
         }
 
@@ -218,7 +232,7 @@ namespace DocuDoctor.Model {
                 subtype = subtype.Substring(0, subtype.LastIndexOf(m_syntaxInfo.objectEnding)).Trim();
                 return subtype;
             } catch(Exception e) { return ""; }
-            
+
         }
 
         public class Syntax {
@@ -243,6 +257,15 @@ namespace DocuDoctor.Model {
                         functionEnding = ")";
                         subtype = ":";
                         trickyKeywords = ["static", "readonly", "override", "abstract"];
+                        break;
+                    case Langague.Java:
+                        visibility = ["private", "public", "protected"];
+                        objectKeywords = ["class", "interface"];
+                        objectEnding = "{";
+                        varEnding = ";";
+                        functionEnding = ")";
+                        subtype = "extends";
+                        trickyKeywords = ["static", "native", "final", "const", "synchronized", "volatile", "abstract"];
                         break;
                     default:
                         visibility = ["invalid"];
@@ -285,8 +308,8 @@ namespace DocuDoctor.Model {
                 if(command.EndsWith('|'))
                     command = command.Substring(0, command.Length - 1);
 
-                command += ").*?[";
-                command += objectEnding + varEnding + functionEnding + "]";
+                command += ").*?(\\" + functionEnding + varEnding +"|";
+                command += "["+objectEnding + varEnding + functionEnding + "])";
                 return command;
             }
 
@@ -300,6 +323,8 @@ namespace DocuDoctor.Model {
                 command += ")";
                 return command;
             }
+
+
 
             public bool isObject(string text) {
                 foreach(string item in objectKeywords) {
@@ -316,10 +341,29 @@ namespace DocuDoctor.Model {
             public bool isVar(string text) {
                 return text.Contains(varEnding);
             }
+
+            public DataType chunkType(string chunk) {
+                //Always priortize chunk 
+                if(isObject(chunk))
+                    return DataType.Class;
+                //When ties happen we prefer Variables because its more common for a you to pre assign a variable
+                // then to have an empty function, this can be changed though but it requires more thought
+                if(isFunction(chunk) && isVar(chunk))
+                    return DataType.Variable;
+                if(isFunction(chunk))
+                    return DataType.Method;
+                if(isVar(chunk))
+                    return DataType.Variable;
+                return DataType.Invalid;
+            }
+
+            public enum DataType {
+                Class, Method, Variable, Invalid
+            }
         }
 
         public enum Langague {
-            Csharp, Invalid
+            Csharp, Invalid, Java
         }
     }
 }
