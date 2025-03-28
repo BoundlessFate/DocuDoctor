@@ -215,8 +215,12 @@ namespace DocuDoctor.Model {
                 chunk = chunk.Remove(chunk.LastIndexOf(m_syntaxInfo.functionEnding)).Trim();
             }
             string[] keywords = chunk.Split(" ");
-            if(keywords.Length >= 2)
+            if(keywords.Length >= 2) {
+                string temp = keywords[0];
+                temp = char.ToUpper(temp[0]) + temp.Substring(1);
+                keywords[0] = temp;
                 return new UmlBox(keywords[0], keywords[1], 0, 0);
+            }
             return null;
         }
 
