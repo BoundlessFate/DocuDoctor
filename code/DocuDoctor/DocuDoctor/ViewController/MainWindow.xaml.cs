@@ -17,8 +17,7 @@ namespace DocuDoctor.ViewController
     /// <summary>
     /// Controller for DocuDoctor
     /// </summary>
-    public partial class MainWindow : Window
-    {
+    public partial class MainWindow : Window {
         // Data object for MVP structure
         private Data m_data;
         // Whether the mouse is being clicked
@@ -52,8 +51,7 @@ namespace DocuDoctor.ViewController
             Loaded += MainWindow_Loaded;
         }
 
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e) {
             //grabs the correct system dpi scale only after the window is loaded, otherwise it would not get the correct scale
             PresentationSource source = PresentationSource.FromVisual(this);
             float dpiScale = (float)(source?.CompositionTarget?.TransformToDevice.M11 ?? 1.0);
@@ -109,13 +107,14 @@ namespace DocuDoctor.ViewController
                 UpdateProperties();
                 skCanvas.InvalidateVisual();
             }
+            if((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)) && Keyboard.IsKeyDown(Key.P))
+                ExportProject_Click(sender, new RoutedEventArgs());
         }
+    
+        
 
         
-            if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)) && Keyboard.IsKeyDown(Key.P))
-                ExportProject_Click(sender, new RoutedEventArgs());        
-         }
-
+            
         private void FileButton_OnClick(object sender, RoutedEventArgs e) {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Multiselect = true;
@@ -227,7 +226,6 @@ namespace DocuDoctor.ViewController
 
             if (e.LeftButton == MouseButtonState.Pressed) {
                 switch (m_data.toolbarSelection) {
-
                     case ToolState.SelectBox:
                         m_data.SelectBox(internalPos);
                         skCanvas.InvalidateVisual();

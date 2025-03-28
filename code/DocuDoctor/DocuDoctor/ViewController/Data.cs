@@ -509,7 +509,7 @@ namespace DocuDoctor.ViewController
         }
     }
     enum ToolState {
-        Select, AddClass, AddTemplate, AddInterface, RemoveBox, AddArrow, AddDashedArrow
+        Select, AddClass, AddTemplate, AddInterface, RemoveBox, AddArrow, AddDashedArrow, SelectBox
     }
 
 }
