@@ -41,7 +41,7 @@ namespace DocuDoctor.ViewController {
         public float TranslationY { get { return m_translationY; } set { m_translationY = value; } }
         // Current box being displayed on the propreties pages
         private UmlBox m_selectedForProperties;
-        public UmlBox SelectedForProperties { get { return m_selectedForProperties; } set { m_selectedForProperties = value; } }
+        public UmlBox? SelectedForProperties { get { return m_selectedForProperties; } set { m_selectedForProperties = value; } }
         // DataTables that are bound to the property tables, allows for easier manipulation into the property pages
         private DataTable m_propertyTable;
         public DataTable PropertyTable { get { return m_propertyTable; } set { m_propertyTable = value; } }
@@ -52,7 +52,7 @@ namespace DocuDoctor.ViewController {
         // Avoids issues with property pages being updated simulatenously
         public bool methodSwitchDone;
         // Current button selected on toolbar, kept as an id 0-x
-        public int toolbarSelection;
+        public ToolState toolbarSelection;
 
         public Data()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -355,6 +355,10 @@ namespace DocuDoctor.ViewController {
             }
         }
 
+        public void RemoveBox(UmlBox b) {
+            m_boxes.Remove(b);
+        }
+
         public void CalculateWidthHeight(UmlBox box)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: CalculateWidthHeight : Data                           ::
@@ -463,4 +467,8 @@ namespace DocuDoctor.ViewController {
             canvas.Restore();
         }
     }
+    enum ToolState {
+        Select, AddClass, AddTemplate, AddInterface, RemoveBox, AddArrow, AddDashedArrow
+    }
+
 }
