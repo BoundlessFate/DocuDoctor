@@ -65,7 +65,7 @@ namespace DocuDoctor.ViewController
             m_boxes = new List<UmlBox>();
             m_movedBox = null;
             m_selectedForProperties = null;
-            m_scale = (float)Screen.PrimaryScreen.Bounds.Width/1920; 
+            m_scale = 1; 
             m_translationX = 0; m_translationY = 0;
             m_propertyTable = new DataTable("PropertyTable");
             m_methodTable = new DataTable("MethodTable");

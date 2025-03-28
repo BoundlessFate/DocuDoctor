@@ -94,7 +94,7 @@ namespace DocuDoctor.ViewController
             return ((int)screenPos.X, (int)screenPos.Y);
         }
 
-        private (int, int) GetMousePosRelSkia()
+        private (float, float) GetMousePosRelSkia()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: GetMousePos : MainWindow                              ::
         :: ---------------------------------------------------------------- ::
@@ -103,7 +103,34 @@ namespace DocuDoctor.ViewController
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             System.Windows.Point screenPos = Mouse.GetPosition(skCanvas);
-            return ((int)screenPos.X, (int)screenPos.Y);
+            return ((float)screenPos.X, (float)screenPos.Y);
+        }
+
+        private (float, float) GetDPI()
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: GetDPI : MainWindow                                   ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Returns the individual x,y dpi (should be the same)  ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
+            float x = (float)(skCanvas.CanvasSize.Width / skCanvas.ActualWidth);
+            float y = (float)(skCanvas.CanvasSize.Height / skCanvas.ActualHeight);
+            return (x, y);
+        }
+
+        private (float, float) ScaleAdjustedWithDPI()
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: ScaleAdjustedWithDPI : MainWindow                     ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Gets the true scale of the skia window with DPI      ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
+            (float, float) dpi = GetDPI();
+            float x = dpi.Item1 * m_data.Scale;
+            float y = dpi.Item2 * m_data.Scale;
+            return (x, y);
         }
 
         private (float, float) GetMousePosInSkiaCoords()
@@ -114,12 +141,22 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: Gets mouse position in skia coordinates              ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            (int, int) mousePos = GetMousePosRelSkia();
-            float scaleX = (float)(skCanvas.CanvasSize.Width / skCanvas.ActualWidth);
-            float scaleY = (float)(skCanvas.CanvasSize.Height / skCanvas.ActualHeight);
-            scaleX /= m_data.Scale; scaleY /= m_data.Scale;
-            float skiaX = (float)(mousePos.Item1 * scaleX) + m_data.TranslationX;
-            float skiaY = (float)(mousePos.Item2 * scaleY) + m_data.TranslationY;
+            (float, float) mousePos = GetMousePosRelSkia();
+            (float, float) dpi = GetDPI();
+
+            // Final formula for adjusting scale is (ab-c)/(bd)
+            // a = mousePos, b = DPI, c = translation, d = Scale
+            // Dont ask me why, but it works
+
+            // 1. Adjust mousePosition with DPI
+            mousePos.Item1 *= dpi.Item1;
+            mousePos.Item2 *= dpi.Item2;
+            // 2. Reverse transformations made on draw
+            float skiaX = (mousePos.Item1 - m_data.TranslationX) / m_data.Scale;
+            float skiaY = (mousePos.Item2 - m_data.TranslationY) / m_data.Scale;
+            // 3. Readjust based on DPI to screen coordinates
+            skiaX /= dpi.Item1;
+            skiaY /= dpi.Item2;
             return (skiaX, skiaY);
         }
 
@@ -175,23 +212,28 @@ namespace DocuDoctor.ViewController
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             float scaleFactor = 1.25f;
+
             if(!IsControlPressed())
                 return;
-            (float,float) curPos = GetMousePosInSkiaCoords();
-            float oldScale = m_data.Scale;
+
+            // Inherintely, the problem boils down to this
+            // Position of mouse in skia coordinates MUST be the same before and after the zoom in or out
+            // The solution? Its very very simple thanks to the helper methods
+            // 1. Get mouse position before in skia coordinates
+            // 2. Scale to whatever you want
+            // 3. Get mouse position after in skia coordinates
+            // Change in translationX and translationY ais relative to both difference in positions and the current scale
+
+            (float, float) posBefore = GetMousePosInSkiaCoords();
             // Zoom in
-            if (e.Delta > 0)
-            {
-                m_data.Scale *= (scaleFactor);
-            }
+            if (e.Delta > 0) m_data.Scale *= (scaleFactor);
             // Zoom out
-            else 
-            {
-                m_data.Scale /= (scaleFactor);
-            }
-            m_data.TranslationX = (float)(curPos.Item1 - (curPos.Item1 - m_data.TranslationX) * (m_data.Scale / oldScale));
-            m_data.TranslationY = (float)(curPos.Item2 - (curPos.Item2 - m_data.TranslationY) * (m_data.Scale / oldScale));
-            m_initialMousePos = curPos;
+            else m_data.Scale /= (scaleFactor);
+            (float, float) posAfter = GetMousePosInSkiaCoords();
+            (float, float) actualScale = ScaleAdjustedWithDPI();
+            m_data.TranslationX += (float)(posAfter.Item1 - posBefore.Item1) * actualScale.Item1;
+            m_data.TranslationY += (float)(posAfter.Item2 - posBefore.Item2) * actualScale.Item2;
+            m_initialMousePos = (posBefore.Item1,posBefore.Item2);
             m_initialTransformX = m_data.TranslationX;
             m_initialTransformY = m_data.TranslationY;
             skCanvas.InvalidateVisual();
@@ -217,13 +259,14 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: handles events when you move mouse in skcanvas       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            Debug.WriteLine(GetMousePosInSkiaCoords());
+            //Debug.WriteLine(GetMousePosInSkiaCoords());
+            GetMousePosInSkiaCoords();
             if (!m_clicked || m_data.toolbarSelection != 0) return;
             else if (m_clicked && e.MouseDevice.LeftButton == MouseButtonState.Released) { m_clicked = false; return; }
             (float, float) curMousePos = GetMousePosInSkiaCoords();
             float deltaX = curMousePos.Item1 - m_lastMousePos.Item1;
             float deltaY = curMousePos.Item2 - m_lastMousePos.Item2;
-            if(!m_data.MoveBox(m_lastMousePos.Item1, m_lastMousePos.Item2, deltaX, deltaY) && IsControlPressed()) {
+            if(!m_data.MoveBox(m_lastMousePos.Item1, m_lastMousePos.Item2, (float)deltaX, (float)deltaY) && IsControlPressed()) {
                 System.Windows.Point curPos = e.GetPosition(skCanvas);
                 m_data.TranslationX = m_initialTransformX + ((float)curPos.X - m_initialMousePos.Item1) / m_data.Scale;
                 m_data.TranslationY = m_initialTransformY + ((float)curPos.Y - m_initialMousePos.Item2) / m_data.Scale;
@@ -1040,7 +1083,7 @@ namespace DocuDoctor.ViewController
         {
             e.Surface.Canvas.Clear();
             e.Surface.Canvas.Translate(m_data.TranslationX, m_data.TranslationY);
-            e.Surface.Canvas.Scale(m_data.Scale);
+            e.Surface.Canvas.Scale(ScaleAdjustedWithDPI().Item1);
             m_data.RedrawAllBoxes(e.Surface.Canvas);
             m_data.RedrawAllArrows(e.Surface.Canvas);
             if (m_data.ExportPhoto) PrintPhoto(e.Surface);
