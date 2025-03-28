@@ -489,13 +489,8 @@ namespace DocuDoctor.ViewController
             canvas.Restore();
         }
     }
-<<<<<<< HEAD
     public enum ToolState {
         Select, AddClass, AddTemplate, AddInterface, RemoveBox, AddArrow, AddDashedArrow
-=======
-    enum ToolState {
-        Select, AddClass, AddTemplate, AddInterface, RemoveBox, AddArrow, AddDashedArrow, SelectBox
->>>>>>> da7e3cf061efad0275e7c87d3582a9b81029c98d
     }
 
 }

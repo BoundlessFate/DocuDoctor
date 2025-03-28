@@ -52,7 +52,6 @@ namespace DocuDoctor.ViewController
             BindElements();
         }
 
-<<<<<<< HEAD
         // The Following couple methods are meant to drastically simplify the code elsewhere
         // They are helper functions which increase code clarity and reduce dependencies on arbitrary variables
         //
@@ -68,15 +67,6 @@ namespace DocuDoctor.ViewController
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             return System.Windows.Input.Keyboard.IsKeyDown(Key.LeftCtrl) || System.Windows.Input.Keyboard.IsKeyDown(Key.RightCtrl);
-=======
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e) {
-            //grabs the correct system dpi scale only after the window is loaded, otherwise it would not get the correct scale
-            PresentationSource source = PresentationSource.FromVisual(this);
-            float dpiScale = (float)(source?.CompositionTarget?.TransformToDevice.M11 ?? 1.0);
-
-            m_data.DpiScale = dpiScale;
-
->>>>>>> da7e3cf061efad0275e7c87d3582a9b81029c98d
         }
 
         private (int,int) GetAbsoluteMousePos()
@@ -208,50 +198,24 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: handles events when you click keys in window         ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-<<<<<<< HEAD
             if (IsControlPressed() && System.Windows.Input.Keyboard.IsKeyDown(Key.P))
                 ExportProject_Click(sender, new RoutedEventArgs());        
          }
-=======
-            if(e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl)
-                m_ctrlClicked = true;
-            //Lets you use delete to remove boxes
-            if((e.Key == Key.Delete || e.Key == Key.Back) && m_data.SelectedForProperties != null) {
-                m_data.RemoveBox(m_data.SelectedForProperties);
-                m_data.SelectedForProperties = null;
-                UpdateProperties();
-                skCanvas.InvalidateVisual();
-            }
-            if((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)) && Keyboard.IsKeyDown(Key.P))
-                ExportProject_Click(sender, new RoutedEventArgs());
-        }
-    
-        
 
-        
-            
+
+
+
+
         private void FileButton_OnClick(object sender, RoutedEventArgs e) {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Multiselect = true;
             openFileDialog.ShowDialog();
             bool newBoxes = m_data.ReadFiles(openFileDialog.FileNames);
-            if(newBoxes) {
+            if (newBoxes) {
                 UpdateProperties();
                 skCanvas.InvalidateVisual();
             }
-
-        private void Screen_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
-        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        :: 1. Method: Screen_KeyUp : MainWindow                             ::
-        :: ---------------------------------------------------------------- ::
-        :: 2. Author: Christopher Villanueva                                ::
-        :: 3. Purpose: handles events when you release keys in window       ::
-        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-        {
-            if(e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl)
-                m_ctrlClicked = false;
         }
->>>>>>> da7e3cf061efad0275e7c87d3582a9b81029c98d
 
         private void SkCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -339,13 +303,8 @@ namespace DocuDoctor.ViewController
 
             if (e.LeftButton == MouseButtonState.Pressed) {
                 switch (m_data.toolbarSelection) {
-<<<<<<< HEAD
                     case ToolState.Select:
                         m_data.SelectBox(mPosSkia);
-=======
-                    case ToolState.SelectBox:
-                        m_data.SelectBox(internalPos);
->>>>>>> da7e3cf061efad0275e7c87d3582a9b81029c98d
                         skCanvas.InvalidateVisual();
                         UpdateProperties();
                         break;
