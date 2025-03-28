@@ -200,8 +200,8 @@ namespace DocuDoctor.ViewController
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             if (IsControlPressed() && System.Windows.Input.Keyboard.IsKeyDown(Key.P))
-                ExportProject_Click(sender, new RoutedEventArgs());
-        }
+                ExportProject_Click(sender, new RoutedEventArgs());        
+         }
 
         private void SkCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -289,37 +289,33 @@ namespace DocuDoctor.ViewController
 
             if (e.LeftButton == MouseButtonState.Pressed) {
                 switch (m_data.toolbarSelection) {
-                    case 0:
+                    case ToolState.Select:
                         m_data.SelectBox(mPosSkia);
                         skCanvas.InvalidateVisual();
                         UpdateProperties();
                         break;
-                    case 1:
+                    case ToolState.RemoveBox:
                         m_data.RemoveBox(mPosSkia);
                         skCanvas.InvalidateVisual();
                         UpdateProperties();
                         break;
-                    case 2:
+                    case ToolState.AddClass:
                         m_data.AddBox(mPosSkia, "Class");
                         skCanvas.InvalidateVisual();
                         UpdateProperties();
                         break;
-                    case 3:
+                    case ToolState.AddInterface:
                         m_data.AddBox(mPosSkia, "Interface");
                         skCanvas.InvalidateVisual();
                         UpdateProperties();
                         break;
-                    case 4:
+                    case ToolState.AddTemplate:
                         m_data.AddBox(mPosSkia, "Template");
                         skCanvas.InvalidateVisual();
                         UpdateProperties();
                         break;
-                    case 5:
-                        m_data.AddArrow(mPos.Item1, mPos.Item2, 0);
-                        skCanvas.InvalidateVisual();
-                        break;
-                    case 6:
-                        m_data.AddArrow(mPos.Item1, mPos.Item2, 1);
+                    case ToolState.AddArrow:
+                        m_data.AddArrow((float)mPosSkia.X, (float)mPosSkia.Y, 0);
                         skCanvas.InvalidateVisual();
                         break;
                 }
@@ -957,7 +953,7 @@ namespace DocuDoctor.ViewController
         {
             ClearAllToolbarButtons();
             Delete.Background = new SolidColorBrush(Colors.Yellow);
-            m_data.toolbarSelection = 1;
+            m_data.toolbarSelection = ViewController.ToolState.RemoveBox;
         }
 
         private void buttonAddClass_Click(object sender, RoutedEventArgs e)
@@ -970,7 +966,7 @@ namespace DocuDoctor.ViewController
         {
             ClearAllToolbarButtons();
             AddClass.Background = new SolidColorBrush(Colors.Yellow);
-            m_data.toolbarSelection = 2;
+            m_data.toolbarSelection = ViewController.ToolState.AddClass;
         }
 
         private void buttonAddInterface_Click(object sender, RoutedEventArgs e)
@@ -983,7 +979,7 @@ namespace DocuDoctor.ViewController
         {
             ClearAllToolbarButtons();
             AddInterface.Background = new SolidColorBrush(Colors.Yellow);
-            m_data.toolbarSelection = 3;
+            m_data.toolbarSelection = ViewController.ToolState.AddInterface;
         }
 
         private void buttonAddTemplate_Click(object sender, RoutedEventArgs e)
@@ -996,7 +992,7 @@ namespace DocuDoctor.ViewController
         {
             ClearAllToolbarButtons();
             AddTemplate.Background = new SolidColorBrush(Colors.Yellow);
-            m_data.toolbarSelection = 4;
+            m_data.toolbarSelection = ToolState.AddTemplate;
         }
 
         private void buttonAddArrow_Click(object sender, RoutedEventArgs e)
@@ -1009,7 +1005,7 @@ namespace DocuDoctor.ViewController
         {
             ClearAllToolbarButtons();
             AddArrow.Background = new SolidColorBrush(Colors.Yellow);
-            m_data.toolbarSelection = 5;
+            m_data.toolbarSelection = ToolState.AddArrow;
         }
 
         private void buttonAddDottedArrow_Click(object sender, RoutedEventArgs e)
@@ -1022,7 +1018,7 @@ namespace DocuDoctor.ViewController
         {
             ClearAllToolbarButtons();
             AddDottedArrow.Background = new SolidColorBrush(Colors.Yellow);
-            m_data.toolbarSelection = 6;
+            m_data.toolbarSelection = ToolState.AddDashedArrow;
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

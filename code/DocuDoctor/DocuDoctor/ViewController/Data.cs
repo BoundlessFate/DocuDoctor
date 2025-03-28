@@ -35,7 +35,7 @@ namespace DocuDoctor.ViewController
         public float TranslationY { get { return m_translationY; } set { m_translationY = value; } }
         // Current box being displayed on the propreties pages
         private UmlBox m_selectedForProperties;
-        public UmlBox SelectedForProperties { get { return m_selectedForProperties; } set { m_selectedForProperties = value; } }
+        public UmlBox? SelectedForProperties { get { return m_selectedForProperties; } set { m_selectedForProperties = value; } }
         // DataTables that are bound to the property tables, allows for easier manipulation into the property pages
         private DataTable m_propertyTable;
         public DataTable PropertyTable { get { return m_propertyTable; } set { m_propertyTable = value; } }
@@ -46,7 +46,8 @@ namespace DocuDoctor.ViewController
         // Avoids issues with property pages being updated simulatenously
         public bool methodSwitchDone;
         // Current button selected on toolbar, kept as an id 0-x
-        public int toolbarSelection;
+        public ToolState toolbarSelection;
+
         // Boolean used for frontend to determine when to print
         private bool m_exportPhoto;
         public bool ExportPhoto { get { return m_exportPhoto; } set { m_exportPhoto = value; } }
@@ -112,9 +113,10 @@ namespace DocuDoctor.ViewController
         {
             bool updatedBoxes = false;
             List<UmlBox> boxes = new List<UmlBox>();
+            Queue<KeyValuePair<long, string>> subtypePairs = new();
             foreach(string fileName in fileNames) {
                 Parser parser = new Parser(fileName);
-                boxes.AddRange(parser.ParseFile());
+                boxes.AddRange(parser.ParseFile(subtypePairs));
             }
             
             float xOffset = 0;
@@ -126,6 +128,13 @@ namespace DocuDoctor.ViewController
 
                 updatedBoxes = true;
                 m_selectedForProperties = box;
+            }
+            while(subtypePairs.Count > 0) {
+                KeyValuePair<long, string> nameIdPair = subtypePairs.Dequeue();
+                UmlBox? source = FindBoxFromID(BoxNameToBoxID(nameIdPair.Value));
+                if(source != null) {
+                    source.AddArrow(nameIdPair.Key, 0);
+                }
             }
             return updatedBoxes;
         }
@@ -287,6 +296,28 @@ namespace DocuDoctor.ViewController
             SelectedForProperties.AddArrow(selectedBox.ID, arrowType);
         }
 
+        public long BoxNameToBoxID(string boxName)
+           /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+           :: 1. Method: BoxNameToBoxID : Data                                 ::
+           :: ---------------------------------------------------------------- ::
+           :: 2. Author: Riley Horling                                         ::
+           :: 3. Purpose: Finds a if a box with the inputed name exists returns::
+           ::    -1 if it doesnt                                               ::
+           ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
+            foreach(UmlBox b in m_boxes) {
+                if(b.Name.ToLower() == boxName.ToLower()) return b.ID;
+            }
+            return -1;
+        }
+
+        private UmlBox? FindBoxFromID(long id) {
+            foreach(UmlBox b in m_boxes) {
+                if(b.ID == id) return b;
+            }
+            return null;
+        }
+
         public bool MoveBox(float x, float y, float deltaX, float deltaY)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: MoveBox : Data                                        ::
@@ -323,6 +354,10 @@ namespace DocuDoctor.ViewController
                     return;
                 }
             }
+        }
+
+        public void RemoveBox(UmlBox b) {
+            m_boxes.Remove(b);
         }
 
         public void CalculateWidthHeight(UmlBox box)
@@ -454,4 +489,8 @@ namespace DocuDoctor.ViewController
             canvas.Restore();
         }
     }
+    public enum ToolState {
+        Select, AddClass, AddTemplate, AddInterface, RemoveBox, AddArrow, AddDashedArrow
+    }
+
 }

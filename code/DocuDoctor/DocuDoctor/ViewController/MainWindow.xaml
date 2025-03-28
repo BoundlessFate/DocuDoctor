@@ -245,9 +245,7 @@
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
                             <!-- Property Text Element At Top -->
-                            <Grid Grid.Row="0">
-                                <TextBlock Foreground="#f8f8ff" FontSize="10" Margin="10,0,0,0" VerticalAlignment="Center">Properties</TextBlock>
-                            </Grid>
+                            <Grid Grid.Row="0"/>
                             <!-- Maleable Section Of Properties Page -->
                             <Grid Grid.Row="1">
                                 <Grid.RowDefinitions>
@@ -261,7 +259,7 @@
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <Label Foreground="#f8f8ff" Content="Name:" Grid.Column="0" VerticalAlignment="Center" />
-                                    <TextBox Name="boxName" Grid.Row="0" Grid.Column="1" Width="200" />
+                                    <TextBox Name="boxName" Grid.Row="0" Grid.Column="1" Margin="0,0,10,0" BorderThickness="1,1,1,1" FontSize="14" Padding="0,2.5,0,0" Text="" />
                                 </Grid>
                                 <Grid Grid.Row="1">
                                     <Label Foreground="#f8f8ff" Content="Properties:" VerticalAlignment="Top" />
