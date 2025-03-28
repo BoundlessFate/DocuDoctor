@@ -1,10 +1,7 @@
 using System.Data;
 using System.Windows;
-<<<<<<< HEAD
 using System.Windows.Controls;
 using System.Diagnostics;
-=======
->>>>>>> main
 using DocuDoctor.Model;
 using SkiaSharp;
 
@@ -370,8 +367,8 @@ namespace DocuDoctor.ViewController
 
         public void SelectBox(SKPoint mPos)
         {
-            float x = mPos.X * m_dpiScale;
-            float y = mPos.Y * m_dpiScale;
+            float x = mPos.X;
+            float y = mPos.Y;
             // Search backwards, so you select the topmost box (since topmost is inherently drawn last aka on top)
             for (int i = m_boxes.Count - 1; i >= 0; i--)
             {
