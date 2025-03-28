@@ -1,7 +1,10 @@
 using System.Data;
 using System.Windows;
+<<<<<<< HEAD
 using System.Windows.Controls;
 using System.Diagnostics;
+=======
+>>>>>>> main
 using DocuDoctor.Model;
 using SkiaSharp;
 
@@ -316,8 +319,6 @@ namespace DocuDoctor.ViewController
             // Search backwards, so you move the topmost box (since topmost is inherently drawn last aka on top)
             for(int i = m_boxes.Count - 1; i >= 0; i--) {
                 UmlBox b = m_boxes[i];
-                Debug.WriteLine("clicked: " + x + " " + y);
-                Debug.WriteLine("Box: " + b.X + " " + b.Y);
                 if ((b.X <= x) && (x < (b.X + b.Width)) && (b.Y <= y) && (y < (b.Y + b.Height))) {
                     // Delete the topmost box at that position, aka, what is being acted on
                     m_boxes.RemoveAt(i);
@@ -365,6 +366,27 @@ namespace DocuDoctor.ViewController
 
             if (box.Variables.Count > 0 && box.Methods.Count > 0) totalHeight += lineHeight / 2;
             box.Width = maxWidth + 20; box.Height = totalHeight + 20;
+        }
+
+        public void SelectBox(SKPoint mPos)
+        {
+            float x = mPos.X * m_dpiScale;
+            float y = mPos.Y * m_dpiScale;
+            // Search backwards, so you select the topmost box (since topmost is inherently drawn last aka on top)
+            for (int i = m_boxes.Count - 1; i >= 0; i--)
+            {
+                UmlBox b = m_boxes[i];
+                if ((b.X <= x) && (x < (b.X + b.Width)) && (b.Y <= y) && (y < (b.Y + b.Height)))
+                {
+                    // Move selected box to top
+                    m_boxes.RemoveAt(i);
+                    m_boxes.Add(b);
+                    // Select the topmost box at that position, aka, what is being acted on
+                    m_selectedForProperties = b;
+                    SelectedForProperties = b;
+                    return;
+                }
+            }
         }
 
         private void DisplayBox(UmlBox box, SKCanvas canvas)
