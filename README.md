@@ -1,7 +1,7 @@
 Quickly Create And Edit Documentation For Software
 <h1 align ="center">
   
-<img src="https://raw.githubusercontent.com/BoundlessFate/DocuDoctor/main/code/DocuDoctor/DocuDoctor/assets/DocumentationDoctor.svg" alt="Alt text" width="400" height="400">
+<img src="https://raw.githubusercontent.com/BoundlessFate/DocuDoctor/main/code/DocuDoctor/DocuDoctor/assets/Docudoctor.svg" alt="Alt text" width="400" height="400">
 
 **DocuDoctor**
 
