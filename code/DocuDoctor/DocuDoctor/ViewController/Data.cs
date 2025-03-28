@@ -1,20 +1,16 @@
-
-﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using DocuDoctor.Model;
 using SkiaSharp;
 
-namespace DocuDoctor.ViewController {
+namespace DocuDoctor.ViewController
+{
+    [Serializable]
     /// <summary>
     /// Holds all stored data for main window
     /// </summary>
-    internal class Data {
+    public class Data
+    {
         // Main list where uml boxes are stored in
         protected List<UmlBox> m_boxes;
         public List<UmlBox> Boxes { get { return m_boxes; } }
@@ -54,6 +50,18 @@ namespace DocuDoctor.ViewController {
         // Current button selected on toolbar, kept as an id 0-x
         public ToolState toolbarSelection;
 
+        // Boolean used for frontend to determine when to print
+        private bool m_exportPhoto;
+        public bool ExportPhoto { get { return m_exportPhoto; } set { m_exportPhoto = value; } }
+        // Values used to scale the output photo
+        public float minX;
+        public float maxX;
+        public float minY;
+        public float maxY;
+
+        private string m_filePath;
+        public string FilePath { get { return m_filePath; } set { m_filePath = value; } }
+
         public Data()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: Data : Data                                           ::
@@ -67,11 +75,15 @@ namespace DocuDoctor.ViewController {
             m_selectedForProperties = null;
             m_scale = (float)Screen.PrimaryScreen.Bounds.Width/1920; 
             m_translationX = 0; m_translationY = 0;
-            m_propertyTable = new DataTable();
-            m_methodTable = new DataTable();
-            m_parameterTable = new DataTable();
+            m_propertyTable = new DataTable("PropertyTable");
+            m_methodTable = new DataTable("MethodTable");
+            m_parameterTable = new DataTable("ParameterTable");
             methodSwitchDone = true;
             toolbarSelection = 0;
+            m_exportPhoto = false;
+            minX = 0; maxX = 1;
+            minY = 0; maxY = 1;
+            m_filePath = "";
         }
 
         public UmlBox AddBox(SKPoint pos)
@@ -86,6 +98,10 @@ namespace DocuDoctor.ViewController {
             m_selectedForProperties = box;
             m_boxes.Add(box);
             CalculateWidthHeight(box);
+            if (minX > pos.X) minX = pos.X;
+            if (minY > pos.Y) minY = pos.Y;
+            if (maxX < pos.X + box.Width) maxX = pos.X + box.Width;
+            if (maxY < pos.Y + box.Height) maxY = pos.Y + box.Height;
             return box;
         }
 
@@ -149,6 +165,10 @@ namespace DocuDoctor.ViewController {
             m_selectedForProperties = box;
             m_boxes.Add(box);
             CalculateWidthHeight(box);
+            if (minX > pos.X) minX = pos.X;
+            if (minY > pos.Y) minY = pos.Y;
+            if (maxX < pos.X + box.Width) maxX = pos.X + box.Width;
+            if (maxY < pos.Y + box.Height) maxY = pos.Y + box.Height;
             return box;
         }
 
@@ -341,12 +361,12 @@ namespace DocuDoctor.ViewController {
         :: 3. Purpose: removes a box from the screen at defined point       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            float x = mPos.X;
-            float y = mPos.Y;
+            float x = mPos.X * m_dpiScale;
+            float y = mPos.Y * m_dpiScale;
             // Search backwards, so you move the topmost box (since topmost is inherently drawn last aka on top)
             for(int i = m_boxes.Count - 1; i >= 0; i--) {
                 UmlBox b = m_boxes[i];
-                if(b.X <= x && x < b.X + b.Width && b.Y <= y && y < b.Y + b.Height) {
+                if ((b.X <= x) && (x < (b.X + b.Width)) && (b.Y <= y) && (y < (b.Y + b.Height))) {
                     // Delete the topmost box at that position, aka, what is being acted on
                     m_boxes.RemoveAt(i);
                     m_selectedForProperties = null;
@@ -397,6 +417,27 @@ namespace DocuDoctor.ViewController {
 
             if (box.Variables.Count > 0 && box.Methods.Count > 0) totalHeight += lineHeight / 2;
             box.Width = maxWidth + 20; box.Height = totalHeight + 20;
+        }
+
+        public void SelectBox(SKPoint mPos)
+        {
+            float x = mPos.X * m_dpiScale;
+            float y = mPos.Y * m_dpiScale;
+            // Search backwards, so you select the topmost box (since topmost is inherently drawn last aka on top)
+            for (int i = m_boxes.Count - 1; i >= 0; i--)
+            {
+                UmlBox b = m_boxes[i];
+                if ((b.X <= x) && (x < (b.X + b.Width)) && (b.Y <= y) && (y < (b.Y + b.Height)))
+                {
+                    // Move selected box to top
+                    m_boxes.RemoveAt(i);
+                    m_boxes.Add(b);
+                    // Select the topmost box at that position, aka, what is being acted on
+                    m_selectedForProperties = b;
+                    SelectedForProperties = b;
+                    return;
+                }
+            }
         }
 
         private void DisplayBox(UmlBox box, SKCanvas canvas)

@@ -1,5 +1,4 @@
 ﻿<!-- View For DocuDoctor -->
-
 <!-- Boring definitions for window -->
 
 <Window x:Class="DocuDoctor.ViewController.MainWindow "
@@ -40,7 +39,30 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style TargetType="ContextMenu">
+            <Setter Property="Background" Value="#333333"/>
+            <!-- Dark gray background -->
+            <Setter Property="BorderBrush" Value="#303030" />
+            <!-- Black border -->
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <!-- MenuItem Style -->
+        <Style TargetType="MenuItem">
+            <Setter Property="Foreground" Value="White"/>
+            <!-- White text -->
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="10,5"/>
 
+            <!-- Highlight Effect -->
+            <Style.Triggers>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter Property="Background" Value="#6c7a89"/>
+                    <!-- Highlight color -->
+                    <Setter Property="Foreground" Value="White"/>
+                    <!-- Text color when highlighted -->
+                </Trigger>
+            </Style.Triggers>
+        </Style>
         <!-- DocuDocter Image -->
         <DrawingImage x:Key="DocudoctorDrawingImage">
             <DrawingImage.Drawing>
@@ -97,7 +119,6 @@
                 </DrawingGroup>
             </DrawingImage.Drawing>
         </DrawingImage>
-
     </Window.Resources>
     <!-- Border around the entire screen... without this when maximized windows cuts off 8px from all sides -->
     <Border BorderBrush="Green">
@@ -120,8 +141,18 @@
             <Grid Grid.Row="0">
                 <WrapPanel HorizontalAlignment="Left" VerticalAlignment="Center">
                     <Image Source="{StaticResource DocudoctorDrawingImage}" Margin="20,0,0,0" VerticalAlignment="Center" Width="20" Height="20" />
-                    <TextBlock Foreground="#f8f8ff" FontSize="18" Margin="20,0,0,0" VerticalAlignment="Center">DocuDoctor</TextBlock>
-                    <Button x:Name="fileButton" Style="{StaticResource TitleBarButtonStyle}" Content="Select Files" HorizontalAlignment="Left" Height="22" Margin="20,0,0,0" VerticalAlignment="Center" Width="78" RenderTransformOrigin="2.464,-0.964" Foreground="GhostWhite" Background="#00413434"/>
+                    <TextBlock Foreground="#f8f8ff" FontSize="18" Margin="20,0,20,0" VerticalAlignment="Center">DocuDoctor</TextBlock>
+                    <Button Foreground="#f8f8ff" Style="{StaticResource TitleBarButtonStyle}" FontSize="18" Content="File" Width="75" Padding="5" Click="ProjectFileButton_Click">
+                        <Button.ContextMenu>
+                            <ContextMenu x:Name="ProjectContextMenu">
+                                <MenuItem Foreground="#f8f8ff" FontSize="18" Header="Load Project" Click="LoadProject_Click"/>
+                                <MenuItem Foreground="#f8f8ff" FontSize="18" Header="Save Project" Click="SaveProject_Click"/>
+                                <MenuItem Foreground="#f8f8ff" FontSize="18" Header="Save As" Click="SaveAs_Click"/>
+                                <MenuItem Foreground="#f8f8ff" FontSize="18" Header="Import Source Code" Click="ImportButton_Click"/>
+                                <MenuItem Foreground="#f8f8ff" FontSize="18" Header="Export Project" Click="ExportProject_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
                 </WrapPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Style="{StaticResource TitleBarButtonStyle}" x:Name="Minimize" Width="50" Background="Transparent" BorderBrush="Transparent" Click="buttonMinimize_Click">
