@@ -199,8 +199,26 @@ namespace DocuDoctor.ViewController
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             if (IsControlPressed() && System.Windows.Input.Keyboard.IsKeyDown(Key.P))
-                ExportProject_Click(sender, new RoutedEventArgs());        
+                ExportProject_Click(sender, new RoutedEventArgs());
+            if (IsControlPressed() && System.Windows.Input.Keyboard.IsKeyDown(Key.A) && System.Windows.Input.Keyboard.IsKeyDown(Key.F)) {
+                OpenBrowser();
+            }
          }
+
+        private void OpenBrowser()
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: OpenBrowser : MainWindow                              ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Huzzah! An april fools joke                          ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
+            Process.Start(new ProcessStartInfo {
+                FileName = "chrome",
+                Arguments = "--new-window https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                UseShellExecute = true
+            });
+        }
 
 
 
