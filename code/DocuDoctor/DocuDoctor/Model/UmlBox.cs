@@ -115,7 +115,17 @@ namespace DocuDoctor.Model {
             m_arrows.Add((id, type));
         }
 
-
+        public void RemoveArrow(long id)
+        {
+            foreach ((long, int) i in m_arrows)
+            {
+                if (id == i.Item1)
+                {
+                    m_arrows.Remove(i);
+                    return;
+                }
+            }
+        }
 
         public override string ToString()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -229,6 +229,81 @@ namespace DocuDoctor.ViewController
             canvas.DrawLine(arrowPointTwo, new SKPoint(boxTwoCoords.Item1, boxTwoCoords.Item2), arrowPaint);
         }
 
+        public Tuple<UmlBox, long> FindArrowAtCoords(float x, float y)
+        {
+            const float TOLERANCE = 5.0f; // Max distance to consider the point on the arrow
+            Dictionary<long, UmlBox> d = new Dictionary<long, UmlBox>();
+
+            foreach (UmlBox box in m_boxes)
+                d.Add(box.ID, box);
+
+            foreach (UmlBox box in m_boxes)
+            {
+                for (int j = box.Arrows.Count - 1; j >= 0; j--)
+                {
+                    long i = box.Arrows[j].Item1;
+                    int t = box.Arrows[j].Item2;
+                    if (d.TryGetValue(i, out UmlBox arrowEnd))
+                    {
+                        Vector[] startPoints = box.ArrowPoints;
+                        Vector[] endPoints = arrowEnd.ArrowPoints;
+
+                        Vector start = startPoints[0];
+                        Vector end = endPoints[0];
+                        double length = (start - end).Length;
+
+                        // Find the shortest arrow between the two boxes
+                        for (int k = 0; k < startPoints.Length; k++)
+                        {
+                            Vector iStart = startPoints[k];
+                            for (int k2 = 0; k2 < endPoints.Length; k2++)
+                            {
+                                Vector iEnd = endPoints[k2];
+                                if ((iStart - iEnd).Length < length)
+                                {
+                                    start = iStart;
+                                    end = iEnd;
+                                    length = (iEnd - iStart).Length;
+                                }
+                            }
+                        }
+
+                        // Check if (x, y) is on this arrow
+                        if (IsPointOnLineSegment(start, end, new Vector(x, y), TOLERANCE))
+                        {
+                            return Tuple.Create(box, i); // Return the arrow ID if found
+                        }
+                    }
+                    else
+                    {
+                        // The arrow end position does not exist anymore, remove it
+                        box.Arrows.RemoveAt(j);
+                    }
+                }
+            }
+            return Tuple.Create<UmlBox, long>(null, -1); // No arrow found at the given coordinates
+        }
+
+        // Checks if a point is on a line segment within a tolerance
+        private bool IsPointOnLineSegment(Vector A, Vector B, Vector P, float tolerance)
+        {
+            Vector AB = B - A;
+            Vector AP = P - A;
+            Vector BP = P - B;
+
+            // Projection scalar t of P onto line AB
+            double t = (AP * AB) / (AB * AB);
+
+            // Clamp t between 0 and 1 to stay within segment
+            if (t < 0) t = 0;
+            if (t > 1) t = 1;
+
+            // Closest point on the line segment to P
+            Vector closest = A + t * AB;
+
+            // Check if distance from P to closest point is within tolerance
+            return (P - closest).Length <= tolerance;
+        }
         public void RedrawAllArrows(SKCanvas canvas)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: RedrawAllArrows : Data                                ::
@@ -344,16 +419,28 @@ namespace DocuDoctor.ViewController
         {
             float x = mPos.X;
             float y = mPos.Y;
+            Tuple<UmlBox, long> arrowID = FindArrowAtCoords(x, y);
+            Debug.WriteLine(arrowID);
+            if (arrowID.Item1 != null)
+            {
+                arrowID.Item1.RemoveArrow(arrowID.Item2);
+                return;
+            }
+
             // Search backwards, so you move the topmost box (since topmost is inherently drawn last aka on top)
-            for(int i = m_boxes.Count - 1; i >= 0; i--) {
+            for (int i = m_boxes.Count - 1; i >= 0; i--)
+            {
                 UmlBox b = m_boxes[i];
-                if ((b.X <= x) && (x < (b.X + b.Width)) && (b.Y <= y) && (y < (b.Y + b.Height))) {
+                if ((b.X <= x) && (x < (b.X + b.Width)) && (b.Y <= y) && (y < (b.Y + b.Height)))
+                {
                     // Delete the topmost box at that position, aka, what is being acted on
                     m_boxes.RemoveAt(i);
                     m_selectedForProperties = null;
                     return;
                 }
             }
+
+
         }
 
         public void RemoveBox(UmlBox b) {
