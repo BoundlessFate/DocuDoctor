@@ -23,14 +23,8 @@ namespace DocuDoctor.ViewController
     public partial class MainWindow : Window {
         // Data object for MVP structure
         private Data m_data;
-        // Whether the mouse is being clicked
-        private bool m_clicked;
+        // Sudo mutex to prevent out of order actions on synchronous action
         private bool m_updatingTable;
-        // Variables used for canvas movement and scaling and object manipulation
-        private (float, float) m_initialMousePos;
-        private (float, float) m_lastMousePos;
-        private float m_initialTransformX;
-        private float m_initialTransformY;
 
         // Not actual data, but performance monitors so kept in frontend
         private PerformanceCounter cpuCounter;
@@ -220,10 +214,6 @@ namespace DocuDoctor.ViewController
             });
         }
 
-
-
-
-
         private void FileButton_OnClick(object sender, RoutedEventArgs e) {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Multiselect = true;
@@ -265,9 +255,6 @@ namespace DocuDoctor.ViewController
             (float, float) actualScale = ScaleAdjustedWithDPI();
             m_data.TranslationX += (float)(posAfter.Item1 - posBefore.Item1) * actualScale.Item1;
             m_data.TranslationY += (float)(posAfter.Item2 - posBefore.Item2) * actualScale.Item2;
-            m_initialMousePos = (posBefore.Item1,posBefore.Item2);
-            m_initialTransformX = m_data.TranslationX;
-            m_initialTransformY = m_data.TranslationY;
             skCanvas.InvalidateVisual();
         }
 
@@ -280,7 +267,6 @@ namespace DocuDoctor.ViewController
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             m_data.MovedBox = null;
-            m_clicked = false;
         }
 
         private void SkCanvas_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
@@ -291,21 +277,24 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: handles events when you move mouse in skcanvas       ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            //Debug.WriteLine(GetMousePosInSkiaCoords());
-            GetMousePosInSkiaCoords();
-            if (!m_clicked || m_data.toolbarSelection != 0) return;
-            else if (m_clicked && e.MouseDevice.LeftButton == MouseButtonState.Released) { m_clicked = false; return; }
-            (float, float) curMousePos = GetMousePosInSkiaCoords();
-            float deltaX = curMousePos.Item1 - m_lastMousePos.Item1;
-            float deltaY = curMousePos.Item2 - m_lastMousePos.Item2;
-            if(!m_data.MoveBox(m_lastMousePos.Item1, m_lastMousePos.Item2, (float)deltaX, (float)deltaY) && IsControlPressed()) {
-                System.Windows.Point curPos = e.GetPosition(skCanvas);
-                m_data.TranslationX = m_initialTransformX + ((float)curPos.X - m_initialMousePos.Item1) / m_data.Scale;
-                m_data.TranslationY = m_initialTransformY + ((float)curPos.Y - m_initialMousePos.Item2) / m_data.Scale;
+            // We only perform actions here if the mouse button is being pressed
+            // We also only perform actions if the current selection is the select/mouse tool
+            if (Mouse.LeftButton != MouseButtonState.Pressed || m_data.toolbarSelection != ToolState.Select) {
+                return;
             }
-            UpdateProperties();
+            (float, float) curMousePos = GetMousePosInSkiaCoords();
+            // Move entire skia sharp window
+            if (IsControlPressed()) {
+                (float, float) delta = (curMousePos.Item1 - m_data.InitialMousePos.Item1, curMousePos.Item2 - m_data.InitialMousePos.Item2);
+                m_data.TranslationX = m_data.InitialTranslation.Item1 + delta.Item1;
+                m_data.TranslationY = m_data.InitialTranslation.Item2 + delta.Item2;
+            // Move selected box
+            } else {
+                // No action or screen refresh needed if nothing is selected
+                if (m_data.SelectedForProperties == null) return;
+
+            }
             skCanvas.InvalidateVisual();
-            m_lastMousePos = curMousePos;
         }
 
         private void SkCanvas_MouseDown(object sender, MouseButtonEventArgs e)
@@ -318,7 +307,8 @@ namespace DocuDoctor.ViewController
         {
             (float, float) mPos = GetMousePosInSkiaCoords();
             SKPoint mPosSkia = new SKPoint(mPos.Item1, mPos.Item2);
-
+            m_data.InitialMousePos = mPos;
+            m_data.InitialTranslation = (m_data.TranslationX, m_data.TranslationY);
             if (e.LeftButton == MouseButtonState.Pressed) {
                 switch (m_data.toolbarSelection) {
                     case ToolState.Select:
@@ -350,14 +340,12 @@ namespace DocuDoctor.ViewController
                         m_data.AddArrow((float)mPosSkia.X, (float)mPosSkia.Y, 0);
                         skCanvas.InvalidateVisual();
                         break;
+                    case ToolState.AddDashedArrow:
+                        m_data.AddArrow((float)mPosSkia.X, (float)mPosSkia.Y, 1);
+                        skCanvas.InvalidateVisual();
+                        break;
                 }
             }
-            if (e.LeftButton == MouseButtonState.Released) return;
-            m_lastMousePos = mPos;
-            m_initialMousePos = mPos;
-            m_initialTransformX = m_data.TranslationX;
-            m_initialTransformY = m_data.TranslationY;
-            m_clicked = true;
         }
         private void UpdateProperties()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -394,7 +382,6 @@ namespace DocuDoctor.ViewController
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             m_data = new Data();
-            m_clicked = false;
             m_updatingTable = false;
             WindowState = WindowState.Maximized;
             WindowStyle = WindowStyle.ThreeDBorderWindow;

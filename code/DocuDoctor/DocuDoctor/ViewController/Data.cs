@@ -20,6 +20,14 @@ namespace DocuDoctor.ViewController
         protected List<string> m_files;
         public List<string> Files { get { return m_files; } }
 
+        // Variables used for moving items and the screen around
+        // Initial position in skia coords of where mouse is when you click down.
+        private (float, float) m_initialMousePos;
+        public (float, float) InitialMousePos { get { return m_initialMousePos; } set { m_initialMousePos = value; } }
+        // Initial transform in skia coords of where mouse is when you click down.
+        private (float, float) m_initialTranslation;
+        public (float, float) InitialTranslation { get { return m_initialTranslation; } set { m_initialTranslation = value; } }
+
         // The box being currently moved (used when you click and drag a box)
         private UmlBox m_movedBox;
         public UmlBox MovedBox { get { return m_movedBox; } set { m_movedBox = value; } }
@@ -91,8 +99,6 @@ namespace DocuDoctor.ViewController
             CalculateWidthHeight(box);
             return box;
         }
-
-
 
         public bool ReadFiles(string[] fileNames)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
