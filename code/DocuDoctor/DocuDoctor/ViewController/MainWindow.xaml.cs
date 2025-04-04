@@ -373,8 +373,9 @@ namespace DocuDoctor.ViewController
             m_data.PropertyTable.Rows.Clear();
             m_data.MethodTable.Rows.Clear();
             m_data.ParameterTable.Rows.Clear();
-            if (cur == null) { boxName.Text = ""; return; }
+            if (cur == null) { boxName.Text = ""; boxTypeComboBox.SelectedValue = null; return; }
             boxName.Text = cur.Name;
+            boxTypeComboBox.SelectedValue = cur.BoxType;
             for (int i = 0; i < cur.Variables.Count; i++) {
                 m_data.PropertyTable.Rows.Add(cur.Variables[i].Protection, cur.Variables[i].Type, cur.Variables[i].Name);
             }
@@ -486,6 +487,8 @@ namespace DocuDoctor.ViewController
             m_data.ParameterTable.TableNewRow += ParameterTable_SyncChanges;
 
             boxName.TextChanged += Name_SyncChanges;
+            boxTypeComboBox.SelectionChanged += Type_SyncChanges;
+
         }
 
         private void Name_SyncChanges(object sender, TextChangedEventArgs e)
@@ -498,6 +501,21 @@ namespace DocuDoctor.ViewController
         {
             if (m_data.SelectedForProperties == null) return;
             m_data.SelectedForProperties.Name = boxName.Text;
+            m_data.CalculateWidthHeight(m_data.SelectedForProperties);
+            skCanvas.InvalidateVisual();
+        }
+
+        private void Type_SyncChanges(object sender, SelectionChangedEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: Name_SyncChanges : MainWindow                         ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Syncs type bar and actual type of box                ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
+            if (m_data.SelectedForProperties == null) return;
+            Debug.WriteLine(boxTypeComboBox.SelectedValue.ToString());
+            m_data.SelectedForProperties.BoxType = boxTypeComboBox.SelectedValue.ToString();
             m_data.CalculateWidthHeight(m_data.SelectedForProperties);
             skCanvas.InvalidateVisual();
         }
