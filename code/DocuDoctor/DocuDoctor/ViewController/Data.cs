@@ -21,12 +21,15 @@ namespace DocuDoctor.ViewController
         public List<string> Files { get { return m_files; } }
 
         // Variables used for moving items and the screen around
-        // Initial position in skia coords of where mouse is when you click down.
+        // Initial position in screen coordinates of where mouse is when you click down.
         private (float, float) m_initialMousePos;
         public (float, float) InitialMousePos { get { return m_initialMousePos; } set { m_initialMousePos = value; } }
         // Initial transform in skia coords of where mouse is when you click down.
         private (float, float) m_initialTranslation;
         public (float, float) InitialTranslation { get { return m_initialTranslation; } set { m_initialTranslation = value; } }
+        // Initial position in skia coords of selected box when you click down
+        private (float, float) m_initialSelectedPos;
+        public (float, float) InitialSelectedPos { get { return m_initialSelectedPos; } set { m_initialSelectedPos = value; } }
 
         // The box being currently moved (used when you click and drag a box)
         private UmlBox m_movedBox;
@@ -408,6 +411,7 @@ namespace DocuDoctor.ViewController
 
         public void SelectBox(SKPoint mPos)
         {
+            m_selectedForProperties = null;
             float x = mPos.X;
             float y = mPos.Y;
             // Search backwards, so you select the topmost box (since topmost is inherently drawn last aka on top)
@@ -421,7 +425,6 @@ namespace DocuDoctor.ViewController
                     m_boxes.Add(b);
                     // Select the topmost box at that position, aka, what is being acted on
                     m_selectedForProperties = b;
-                    SelectedForProperties = b;
                     return;
                 }
             }

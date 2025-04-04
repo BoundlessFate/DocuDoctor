@@ -153,6 +153,35 @@ namespace DocuDoctor.ViewController
             return (skiaX, skiaY);
         }
 
+        private (float, float) GetDeltaSkia(float x1, float y1, float x2, float y2)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: GetDeltaSkia : MainWindow                             ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Gets skia distance between two mouse positions       ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
+            // Based on the formula for translating mouse position
+            // relatve to skia to skia coords
+            (float, float) dpi = GetDPI();
+
+            // Final formula for adjusting scale is (ab)/(bd)
+            // a = deltaPos, b = DPI, c = translation, d = Scale
+            // Dont ask me why, but it works
+
+            // 1. Adjust deltaPosition with DPI
+            (float, float) deltaPos = (x2 - x1, y2 - y1);
+            deltaPos.Item1 *= dpi.Item1;
+            deltaPos.Item2 *= dpi.Item2;
+            // 2. Reverse transformations made on draw
+            float skiaX = (deltaPos.Item1) / m_data.Scale;
+            float skiaY = (deltaPos.Item2) / m_data.Scale;
+            // 3. Readjust based on DPI to screen coordinates
+            skiaX /= dpi.Item1;
+            skiaY /= dpi.Item2;
+            return (skiaX, skiaY);
+        }
+
         // END OF HELPER METHODS
 
         private void BindElements()
@@ -282,17 +311,18 @@ namespace DocuDoctor.ViewController
             if (Mouse.LeftButton != MouseButtonState.Pressed || m_data.toolbarSelection != ToolState.Select) {
                 return;
             }
-            (float, float) curMousePos = GetMousePosInSkiaCoords();
+            (float, float) curMousePos = GetMousePosRelSkia();
+            (float, float) delta = GetDeltaSkia(m_data.InitialMousePos.Item1, m_data.InitialMousePos.Item2, curMousePos.Item1, curMousePos.Item2);
             // Move entire skia sharp window
             if (IsControlPressed()) {
-                (float, float) delta = (curMousePos.Item1 - m_data.InitialMousePos.Item1, curMousePos.Item2 - m_data.InitialMousePos.Item2);
-                m_data.TranslationX = m_data.InitialTranslation.Item1 + delta.Item1;
-                m_data.TranslationY = m_data.InitialTranslation.Item2 + delta.Item2;
+                m_data.TranslationX = m_data.InitialTranslation.Item1 + delta.Item1*ScaleAdjustedWithDPI().Item1;
+                m_data.TranslationY = m_data.InitialTranslation.Item2 + delta.Item2*ScaleAdjustedWithDPI().Item2;
             // Move selected box
             } else {
                 // No action or screen refresh needed if nothing is selected
                 if (m_data.SelectedForProperties == null) return;
-
+                m_data.SelectedForProperties.X = m_data.InitialSelectedPos.Item1 + delta.Item1;
+                m_data.SelectedForProperties.Y = m_data.InitialSelectedPos.Item2 + delta.Item2;
             }
             skCanvas.InvalidateVisual();
         }
@@ -307,8 +337,11 @@ namespace DocuDoctor.ViewController
         {
             (float, float) mPos = GetMousePosInSkiaCoords();
             SKPoint mPosSkia = new SKPoint(mPos.Item1, mPos.Item2);
-            m_data.InitialMousePos = mPos;
+            m_data.InitialMousePos = GetMousePosRelSkia();
             m_data.InitialTranslation = (m_data.TranslationX, m_data.TranslationY);
+            if (m_data.SelectedForProperties != null) {
+                m_data.InitialSelectedPos = (m_data.SelectedForProperties.X, m_data.SelectedForProperties.Y);
+            }
             if (e.LeftButton == MouseButtonState.Pressed) {
                 switch (m_data.toolbarSelection) {
                     case ToolState.Select:
