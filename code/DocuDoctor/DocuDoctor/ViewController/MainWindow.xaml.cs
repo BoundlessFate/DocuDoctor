@@ -226,7 +226,24 @@ namespace DocuDoctor.ViewController
             if (IsControlPressed() && System.Windows.Input.Keyboard.IsKeyDown(Key.A) && System.Windows.Input.Keyboard.IsKeyDown(Key.F)) {
                 OpenBrowser();
             }
-         }
+            if(System.Windows.Input.Keyboard.IsKeyDown(Key.Right)) {
+                m_data.TranslationX -= 10 / m_data.Scale;
+                skCanvas.InvalidateVisual();
+            }
+            if(System.Windows.Input.Keyboard.IsKeyDown(Key.Left)) {
+                m_data.TranslationX += 10 / m_data.Scale;
+                skCanvas.InvalidateVisual();
+            }
+            if(System.Windows.Input.Keyboard.IsKeyDown(Key.Up)) {
+                m_data.TranslationY += 10 / m_data.Scale;
+                skCanvas.InvalidateVisual();
+            }
+            if(System.Windows.Input.Keyboard.IsKeyDown(Key.Down)) {
+                m_data.TranslationY -= 10 / m_data.Scale;
+                skCanvas.InvalidateVisual();
+            }
+
+        }
 
         private void OpenBrowser()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

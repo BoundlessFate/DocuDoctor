@@ -256,7 +256,7 @@ namespace DocuDoctor.Model {
                         varEnding = ";";
                         functionEnding = ")";
                         subtype = ":";
-                        trickyKeywords = ["static", "readonly", "override", "abstract"];
+                        trickyKeywords = ["static", "readonly", "override", "abstract", "const", "virtual", "async"];
                         break;
                     case Langague.Java:
                         visibility = ["private", "public", "protected"];
