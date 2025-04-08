@@ -61,16 +61,17 @@ namespace DocuDoctor.Model {
                 Regex conditionalInfo = new Regex(m_syntaxInfo.generateRemoveConditionalInfoCommand());
                 using(StreamReader sr = new StreamReader(m_file)) {
                     while(!sr.EndOfStream) {
-                        string line = sr.ReadLine();
+                        string? line = sr.ReadLine();
                         fileContent += line + '\n';
                     }
                 }
+                //Cleans up what we just read
                 fileContent = stringsAndComments.Replace(fileContent, " ");
                 fileContent = conditionalInfo.Replace(fileContent, " ");
                 fileContent = whiteSpace.Replace(fileContent, " ");
             } catch(Exception ex) {
                 if(ex is FileNotFoundException || ex is NullReferenceException) {
-                    throw new FileNotFoundException("Invalid Input File");
+                    m_lang = Langague.Invalid;
                 }
             }
 
@@ -115,6 +116,9 @@ namespace DocuDoctor.Model {
             if(m_lang == Langague.Invalid)
                 return new();
             string fileContent = readFile();
+            //Double check incase there was a new problem reading the file
+            if(m_lang == Langague.Invalid)
+                return new();
             //Scans for keywords like class and private and takes everything up to the line ender
             Regex findKeywords = new Regex(m_syntaxInfo.generateKeywordRegexCommand());//new Regex("(private |public |class |protected ).*?[);{]");
             MatchCollection keywordChunks = findKeywords.Matches(fileContent);
@@ -163,10 +167,12 @@ namespace DocuDoctor.Model {
 
         private UmlVariable? readVariable(string text) {
             //TODO: change this into a something better
-            int removeIndex = Math.Max(text.IndexOf('='), text.IndexOf(';'));
-            if(removeIndex > 0)
-                text = text.Remove(removeIndex);
+            int removeIndex = Math.Max(text.IndexOf('='), text.IndexOf(m_syntaxInfo.varEnding));
+            if(removeIndex > 0) 
+                text = text.Remove(removeIndex).Trim();
+            
             string[] chunks = text.Split(' ');
+            //Grabs the first three items 
             if(chunks.Length >= 3)
                 return new UmlVariable(chunks[0], chunks[1], chunks[2]);
             return null;
@@ -206,17 +212,21 @@ namespace DocuDoctor.Model {
             //TODO: This is all a bit of a mess and needs to be improved 
 
             foreach(string keyword in m_syntaxInfo.objectKeywords) {
+                //Finds out what type of box we are making by comparing keywords
                 if(chunk.Contains(keyword)) {
                     chunk = chunk.Substring(chunk.IndexOf(keyword)).Trim();
                     break;
                 }
             }
+
             if(chunk.Contains(m_syntaxInfo.functionEnding)) {
                 chunk = chunk.Remove(chunk.LastIndexOf(m_syntaxInfo.functionEnding)).Trim();
             }
+            // Assuming we use spaces to seperate info into words 
             string[] keywords = chunk.Split(" ");
             if(keywords.Length >= 2) {
                 string temp = keywords[0];
+                //Makes sure the start is capatlized 
                 temp = char.ToUpper(temp[0]) + temp.Substring(1);
                 keywords[0] = temp;
                 return new UmlBox(keywords[0], keywords[1], 0, 0);
@@ -229,6 +239,7 @@ namespace DocuDoctor.Model {
                 return "";
             try {
                 string subtype = chunk.Substring(chunk.IndexOf(m_syntaxInfo.subtype) + 1);
+                //Splits it into just one word we are not doing multi inheritance
                 subtype = subtype.Substring(0, subtype.LastIndexOf(m_syntaxInfo.objectEnding)).Trim();
                 return subtype;
             } catch(Exception e) { return ""; }

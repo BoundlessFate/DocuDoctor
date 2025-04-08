@@ -260,17 +260,6 @@ namespace DocuDoctor.ViewController
             });
         }
 
-        private void FileButton_OnClick(object sender, RoutedEventArgs e) {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Multiselect = true;
-            openFileDialog.ShowDialog();
-            bool newBoxes = m_data.ReadFiles(openFileDialog.FileNames);
-            if (newBoxes) {
-                UpdateProperties();
-                skCanvas.InvalidateVisual();
-            }
-        }
-
         private void SkCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: SkCanvas_MouseWheel : MainWindow                      ::
@@ -953,6 +942,8 @@ namespace DocuDoctor.ViewController
         {
             System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog();
             openFileDialog.Multiselect = true;
+            openFileDialog.Title = "Import Source Code Files";
+            openFileDialog.Filter = "Code Files (*.cs;*.java)|*.cs;*.java";
             openFileDialog.ShowDialog();
             bool newBoxes = m_data.ReadFiles(openFileDialog.FileNames);
             if (newBoxes) {
