@@ -17,6 +17,8 @@ namespace DocuDoctor.ViewController
         protected List<UmlBox> m_boxes;
         public List<UmlBox> Boxes { get { return m_boxes; } }
 
+        private Dictionary<long, Vector> m_boxCenters; 
+
         protected List<string> m_files;
         public List<string> Files { get { return m_files; } }
 
@@ -75,6 +77,7 @@ namespace DocuDoctor.ViewController
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             m_boxes = new List<UmlBox>();
+            m_boxCenters = new Dictionary<long, Vector>();
             m_movedBox = null;
             m_selectedForProperties = null;
             m_scale = 1; 
@@ -491,7 +494,7 @@ namespace DocuDoctor.ViewController
                     maxWidth = textWidth;
                 totalHeight += lineHeight;
             }
-
+            if(box.Variables.Count > 0 || box.Methods.Count > 0) totalHeight += lineHeight / 2;
             if (box.Variables.Count > 0 && box.Methods.Count > 0) totalHeight += lineHeight / 2;
             box.Width = maxWidth + 20; box.Height = totalHeight + 20;
         }
@@ -569,11 +572,18 @@ namespace DocuDoctor.ViewController
             // Display the box header
             canvas.DrawText(box.ToString(), textX, textY, textPaint);
             textY += lineHeight;
+            if(box.Variables.Count > 0 || box.Methods.Count > 0) {
+                textY -= lineHeight / 2;
+                canvas.DrawLine(new SKPoint(x, textY), new SKPoint(x + box.Width, textY ), borderPaint);
+                textY += lineHeight;
+            }
+            
             // Display the variables
             foreach(UmlVariable v in box.Variables) {
                 canvas.DrawText(v.ToString(), textX, textY, textPaint);
                 textY += lineHeight;
             }
+            
             // Draw the dividing line
             if (box.Variables.Count > 0 && box.Methods.Count > 0) {
                 textY -= lineHeight / 2;
