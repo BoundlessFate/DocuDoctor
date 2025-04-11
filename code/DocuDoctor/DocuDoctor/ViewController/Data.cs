@@ -512,6 +512,9 @@ namespace DocuDoctor.ViewController
                     m_boxes.Add(b);
                     // Select the topmost box at that position, aka, what is being acted on
                     m_selectedForProperties = b;
+                    m_initialSelectedPos.Item1 = b.X;
+                    m_initialSelectedPos.Item2 = b.Y;
+
                     return;
                 }
             }
