@@ -17,6 +17,13 @@ namespace DocuDoctor.ViewController
         protected List<UmlBox> m_boxes;
         public List<UmlBox> Boxes { get { return m_boxes; } }
 
+        protected List<UmlCircle> m_circles;
+        public List<UmlCircle> Circles { get { return m_circles; } }
+
+        public UmlCircle m_lastCircle;
+        public bool m_drawingCircle;
+        
+
         protected List<string> m_files;
         public List<string> Files { get { return m_files; } }
 
@@ -75,6 +82,7 @@ namespace DocuDoctor.ViewController
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
             m_boxes = new List<UmlBox>();
+            m_circles = new List<UmlCircle>();
             m_movedBox = null;
             m_selectedForProperties = null;
             m_scale = 1; 
@@ -86,6 +94,8 @@ namespace DocuDoctor.ViewController
             toolbarSelection = 0;
             m_exportPhoto = false;
             m_filePath = "";
+            m_drawingCircle = false;
+            m_lastCircle = null;
         }
 
         public UmlBox AddBox(SKPoint pos)
@@ -102,6 +112,16 @@ namespace DocuDoctor.ViewController
             CalculateWidthHeight(box);
             return box;
         }
+
+        public UmlCircle AddCircle(SKPoint pos)
+        {
+            UmlCircle circle = new UmlCircle((int)pos.X, (int)pos.Y);
+            m_lastCircle = circle;
+            m_circles.Add(circle);
+            return circle; 
+        }
+
+
 
         public bool ReadFiles(string[] fileNames)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -369,6 +389,18 @@ namespace DocuDoctor.ViewController
             foreach (UmlBox b in m_boxes) DisplayBox(b, canvas);
         }
 
+
+        public void RedrawAllCircles(SKCanvas canvas)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: RedrawAllBoxes : Data                                 ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: Refreshes screen by redrawing all boxes              ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
+            foreach (UmlCircle c in m_circles) DisplayCircle(c, canvas);
+        }
+
         public void AddArrow(float x, float y, int arrowType) {
             // Return if no first box selected
             if (m_selectedForProperties == null) return;
@@ -410,6 +442,7 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: Moves box at given x and y by deltaX and deltaY      ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
+
             UmlBox? selectedBox = FindBoxAtCoords(x, y);
             if (selectedBox == null) return false;
             selectedBox.X += deltaX; selectedBox.Y += deltaY;
@@ -452,9 +485,14 @@ namespace DocuDoctor.ViewController
 
         }
 
+
+
         public void RemoveBox(UmlBox b) {
             m_boxes.Remove(b);
         }
+
+
+  
 
         public void CalculateWidthHeight(UmlBox box)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -584,9 +622,38 @@ namespace DocuDoctor.ViewController
             }
             canvas.Restore();
         }
+
+        private void DisplayCircle(UmlCircle circ, SKCanvas canvas){
+
+            SKPaint borderPaint = new SKPaint
+            {
+                Color = SKColors.Black,
+                IsAntialias = true,
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = 2
+            };
+
+            float x = circ.X; float y = circ.Y;
+
+            SkiaSharp.SKRect boundingRectangle = new SkiaSharp.SKRect(x,y, x+circ.Width, y+circ.Height);
+
+            canvas.DrawOval(boundingRectangle, borderPaint);
+
+            canvas.Restore();
+
+
+        }
+
+
+
     }
+
+
+        
+
+
     public enum ToolState {
-        Select, AddClass, AddTemplate, AddInterface, RemoveBox, AddArrow, AddDashedArrow
+        Select, AddClass, AddTemplate, AddInterface, RemoveBox, AddArrow, AddDashedArrow, AddCircle
     }
 
 }

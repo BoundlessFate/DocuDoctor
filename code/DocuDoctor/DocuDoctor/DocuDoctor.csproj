@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="assets\AddCircle.png" />
     <None Remove="assets\AddClass.png" />
     <None Remove="assets\AddInterface.png" />
     <None Remove="assets\AddTemplate.png" />
@@ -41,6 +42,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="assets\AddCircle.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="assets\AddClass.png" />
     <Resource Include="assets\AddInterface.png" />
     <Resource Include="assets\AddTemplate.png" />

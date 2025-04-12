@@ -245,6 +245,8 @@ namespace DocuDoctor.ViewController
 
         }
 
+
+
         private void OpenBrowser()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: OpenBrowser : MainWindow                              ::
@@ -253,7 +255,8 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: Huzzah! An april fools joke                          ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            Process.Start(new ProcessStartInfo {
+            Process.Start(new ProcessStartInfo
+            {
                 FileName = "chrome",
                 Arguments = "--new-window https://www.youtube.com/watch?v=dQw4w9WgXcQ",
                 UseShellExecute = true
@@ -312,7 +315,10 @@ namespace DocuDoctor.ViewController
         :: 3. Purpose: handles events when you release mouse in skcanvas    ::
         ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         {
-            m_data.MovedBox = null;
+            //m_data.drawingCircle = false;
+            //m_clicked = false;
+           
+          
         }
 
         private void SkCanvas_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
@@ -325,24 +331,56 @@ namespace DocuDoctor.ViewController
         {
             // We only perform actions here if the mouse button is being pressed
             // We also only perform actions if the current selection is the select/mouse tool
-            if (Mouse.LeftButton != MouseButtonState.Pressed || m_data.toolbarSelection != ToolState.Select) {
+
+
+
+            if (Mouse.LeftButton != MouseButtonState.Pressed || (m_data.toolbarSelection != ToolState.Select && m_data.toolbarSelection != ToolState.AddCircle)) {
+                m_data.m_drawingCircle = false;
                 return;
             }
+           
             (float, float) curMousePos = GetMousePosRelSkia();
             (float, float) delta = GetDeltaSkia(m_data.InitialMousePos.Item1, m_data.InitialMousePos.Item2, curMousePos.Item1, curMousePos.Item2);
             // Move entire skia sharp window
+           
+            UpdateProperties();
+            
+            skCanvas.InvalidateVisual();
+
+            ;
+            if (m_data.m_drawingCircle)
+            {
+                
+                if (m_data.m_lastCircle != null)
+                {
+                    
+                    m_data.m_lastCircle.Width = delta.Item1;
+                    m_data.m_lastCircle.Height = delta.Item2;
+
+                }
+                UpdateProperties();
+
+                skCanvas.InvalidateVisual();
+                return;
+
+            }
+
             if (IsControlPressed()) {
-                m_data.TranslationX = m_data.InitialTranslation.Item1 + delta.Item1*ScaleAdjustedWithDPI().Item1;
-                m_data.TranslationY = m_data.InitialTranslation.Item2 + delta.Item2*ScaleAdjustedWithDPI().Item2;
-            // Move selected box
-            } else {
+                m_data.TranslationX = m_data.InitialTranslation.Item1 + delta.Item1 * ScaleAdjustedWithDPI().Item1;
+                m_data.TranslationY = m_data.InitialTranslation.Item2 + delta.Item2 * ScaleAdjustedWithDPI().Item2;
+                // Move selected box
+            } else { 
+
                 // No action or screen refresh needed if nothing is selected
                 if (m_data.SelectedForProperties == null) return;
                 m_data.SelectedForProperties.X = m_data.InitialSelectedPos.Item1 + delta.Item1;
                 m_data.SelectedForProperties.Y = m_data.InitialSelectedPos.Item2 + delta.Item2;
+
+
+
             }
-            skCanvas.InvalidateVisual();
         }
+
 
         private void SkCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -356,11 +394,14 @@ namespace DocuDoctor.ViewController
             SKPoint mPosSkia = new SKPoint(mPos.Item1, mPos.Item2);
             m_data.InitialMousePos = GetMousePosRelSkia();
             m_data.InitialTranslation = (m_data.TranslationX, m_data.TranslationY);
-            if (m_data.SelectedForProperties != null) {
+            if (m_data.SelectedForProperties != null)
+            {
                 m_data.InitialSelectedPos = (m_data.SelectedForProperties.X, m_data.SelectedForProperties.Y);
             }
-            if (e.LeftButton == MouseButtonState.Pressed) {
-                switch (m_data.toolbarSelection) {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                switch (m_data.toolbarSelection)
+                {
                     case ToolState.Select:
                         m_data.SelectBox(mPosSkia);
                         skCanvas.InvalidateVisual();
@@ -390,13 +431,20 @@ namespace DocuDoctor.ViewController
                         m_data.AddArrow((float)mPosSkia.X, (float)mPosSkia.Y, 0);
                         skCanvas.InvalidateVisual();
                         break;
-                    case ToolState.AddDashedArrow:
-                        m_data.AddArrow((float)mPosSkia.X, (float)mPosSkia.Y, 1);
+                    case ToolState.AddCircle:
+                        m_data.AddCircle(mPosSkia);
+                        m_data.m_drawingCircle = true;
                         skCanvas.InvalidateVisual();
                         break;
+
                 }
+                if (e.LeftButton == MouseButtonState.Released) return;
+                
+ 
             }
+
         }
+
         private void UpdateProperties()
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: UpdateProperties : MainWindow                         ::
@@ -1015,6 +1063,7 @@ namespace DocuDoctor.ViewController
             AddTemplate.Background = new SolidColorBrush(Colors.Transparent);
             AddArrow.Background = new SolidColorBrush(Colors.Transparent);
             AddDottedArrow.Background = new SolidColorBrush(Colors.Transparent);
+            AddCircle.Background = new SolidColorBrush(Colors.Transparent);
         }
 
         private void buttonDeselect_Click(object sender, RoutedEventArgs e)
@@ -1108,6 +1157,19 @@ namespace DocuDoctor.ViewController
             m_data.toolbarSelection = ToolState.AddDashedArrow;
         }
 
+        private void buttonAddCircle_Click(object sender, RoutedEventArgs e)
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :: 1. Method: buttonAddCircle_Click : MainWindow               ::
+        :: ---------------------------------------------------------------- ::
+        :: 2. Author: Christopher Villanueva                                ::
+        :: 3. Purpose: When you click add dotted arrow                      ::
+        ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        {
+            ClearAllToolbarButtons();
+            AddCircle.Background = new SolidColorBrush(Colors.Yellow);
+            m_data.toolbarSelection = ToolState.AddCircle;
+        }
+
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         :: 1. Method: Window_MouseLeftButtonDown : MainWindow               ::
@@ -1173,6 +1235,7 @@ namespace DocuDoctor.ViewController
             e.Surface.Canvas.Translate(m_data.TranslationX, m_data.TranslationY);
             e.Surface.Canvas.Scale(ScaleAdjustedWithDPI().Item1);
             m_data.RedrawAllBoxes(e.Surface.Canvas);
+            m_data.RedrawAllCircles(e.Surface.Canvas);
             m_data.RedrawAllArrows(e.Surface.Canvas);
             if (m_data.ExportPhoto) PrintPhoto(e.Surface);
         }

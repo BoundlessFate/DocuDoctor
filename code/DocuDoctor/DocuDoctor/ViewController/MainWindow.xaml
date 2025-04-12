@@ -203,12 +203,16 @@
                         <Button x:Name="AddTemplate" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddTemplate_Click" ToolTip="Add Template">
                             <Image Source="../assets/AddTemplate.png" Width="20" Height="35" />
                         </Button>
+                        <Button x:Name="AddCircle" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddCircle_Click" ToolTip="Add Circle">
+                            <Image Source="../assets/AddCircle.png" Width="20" Height="35" />
+                        </Button>
                         <Button x:Name="AddArrow" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddArrow_Click" ToolTip="Add Arrow">
                             <Image Source="../assets/arrow.png" Width="20" Height="35" />
                         </Button>
                         <Button x:Name="AddDottedArrow" Width="40" Background="Transparent" BorderBrush="Transparent" Click="buttonAddDottedArrow_Click" ToolTip="Add Dotted Arrow">
                             <Image Source="../assets/dottedarrow.png" Width="20" Height="35" />
                         </Button>
+
                     </StackPanel>
                 </Grid>
                 <Grid Grid.Column="2">
